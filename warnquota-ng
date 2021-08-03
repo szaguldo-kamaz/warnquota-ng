@@ -333,13 +333,6 @@ def checkquota(fs):
                     sendquotausermail=False;
                     intervalhit=False;
 
-                    if username in config.warnquotauser.keys():
-                        alertusermailaddr=config.warnquotauser[username][1];
-                        alertadminmailaddr=config.warnquotauser[username][2];
-                    else:
-                        alertusermailaddr=username+"@"+config.hostname;
-                        alertadminmailaddr=config.defaultadminmailto;
-
                     violationtype=int(overblock)*1000+int(overinode)*100+int(alertblock)*10+int(alertinode);
 
                     # sendmail can take some time so we need to recheck time in every iteration to be accurate
@@ -386,11 +379,13 @@ def checkquota(fs):
                         if (overinode or alertinode) and config.inodealertoverridemailto != False:
                             mailtouser_to_addr=config.inodealertoverridemailto;
                             mailtoadmin_to_addr=config.inodealertoverridemailto;
-                            alertusermailaddr=config.inodealertoverridemailto;
-                            alertadminmailaddr=config.inodealertoverridemailto;
                         else:
-                            mailtouser_to_addr=alertusermailaddr;
-                            mailtoadmin_to_addr=alertadminmailaddr;
+                            if username in config.warnquotauser.keys():
+                                mailtouser_to_addr=config.warnquotauser[username][1];
+                                mailtoadmin_to_addr=config.warnquotauser[username][2];
+                            else:
+                                mailtouser_to_addr=username+"@"+config.hostname;
+                                mailtoadmin_to_addr=config.defaultadminmailto;
 
                         if overblock or overinode:
                             mailtouser_text=config.mailbody_overinode_user[maillang];
