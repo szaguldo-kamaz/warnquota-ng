@@ -114,7 +114,7 @@ class config:
     mailbody_overinode_user['hu']='Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhely maximális méretét.\n';
     mailbody_overinode_user['en']='Dear Customer,\n\nYou have received this automated message, because you have reached your storage space limit allowed by your subscription.\n';
     mailbody_overinode_admin['hu']='Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhely maximális méretét.\n';
-    mailbody_overinode_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your clients have reached the maximum allowed storage space.\n';
+    mailbody_overinode_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the maximum allowed storage space.\n';
     mailbody_overquota_overquota_user['hu']='Quota túllépés';
     mailbody_overquota_overquota_user['en']='Quota exceeded';
     mailbody_overquota_warning['hu']='figyelmeztetés';
@@ -128,7 +128,7 @@ class config:
     mailbody_overblock_user['hu']='Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhelyhez beállított figyelmeztetési határt.\n';
     mailbody_overblock_user['en']='Dear Customer,\n\nYou have received this automated message, because you have reached your alert limit for storage space usage.\n';
     mailbody_overblock_admin['hu']='Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhelyehez beállított figyelmeztetési határt.\n';
-    mailbody_overblock_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your clients have reached the alert limit for storage space usage.\n';
+    mailbody_overblock_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the alert limit for storage space usage.\n';
     mailbody_overquota_footer_user1['hu']='\nAmennyiben nem érti, úgy nézze meg az ügyfélkapun belül a quota adatokat, vagy kérje munkatársunk segítségét!\n\nKérjük töröljön néhány fájlt/levelet, hogy helyet szabadítson fel, vagy vásároljon plusz tárhelyet!\n\nProbléma esetén vegye fel munkatársunkkal a kapcsolatot e-mail-ben: ';
     mailbody_overquota_footer_user2['hu']=' vagy telefonon: ';
     mailbody_overquota_footer_user3['hu']='.';
@@ -155,11 +155,11 @@ class config:
     mailbody_quotaok_subj['en']='Quota is OK';
     mailbody_quotaok_user1['hu']='Tisztelt Ügyfelünk!\n\nKöszönjük, hogy rendezte kvóta túllépését!';
     mailbody_quotaok_user2['hu']='';
-    mailbody_quotaok_user1['en']='Dear Customer,\n\nThank you for settling your quota matter!';
+    mailbody_quotaok_user1['en']='Dear Customer,\n\nYour account is back under quota. Thank you for your cooperation!';
     mailbody_quotaok_user2['en']='';
     mailbody_quotaok_admin1['hu']='Tisztelt Adminisztrátor!\n\nÜgyfele';
     mailbody_quotaok_admin2['hu']='rendezte kvóta túllépését!';
-    mailbody_quotaok_admin1['en']='Dear Administrator,\n\nYour client';
+    mailbody_quotaok_admin1['en']='Dear Administrator,\n\nYour customer';
     mailbody_quotaok_admin2['en']='is below quota again!';
 
 
