@@ -6,16 +6,6 @@
 # github.com/szaguldo-kamaz/
 # david.vincze@webcode.hu
 #
-#
-# Features:
-# - send quota alerts when limit is reached
-# - send notifications (pre-alerts) before limit is reached
-# - send confirmation when quota is below the limit again
-# - sends repeated reminders based on configured intervals
-# - notifies both the user and an admin
-# - handle different e-mail addresses for users
-# - multi-language support
-#
 
 import sys, os, time, datetime, syslog, smtplib, email
 from email.mime.text import MIMEText
