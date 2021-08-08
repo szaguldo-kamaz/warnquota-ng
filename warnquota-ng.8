@@ -1,0 +1,46 @@
+.TH WARNQUOTA-NG 8
+.SH NAME
+warnquota-ng \- notify users and admins about reaching quota limits
+.SH SYNOPSIS
+.B warnquota-ng
+[
+.B \-nvdVh
+]
+.SH DESCRIPTION
+.B warnquota-ng
+monitors filesystem quotas and sends notifications to users and administrators if a limit has been reached, or a certain percentage of disk space has been used up, or when the usage is below the limit again.
+Similarly to the original warnquota it is typically run via
+.BR cron (8).
+.TP
+.BR \-n
+Trial run. Quota limits and previous state information will be processed, but no mails will be sent to users/admins, and no updates will be made to the state files.
+.TP
+.BR \-v , " \-d"
+Increase verbosity.
+.TP
+.BR \-V , " \-\-version"
+Display version information and exit.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+.SH FILES
+.PD 0
+.TP
+.B /etc/warnquota-ng/warnquota-ng.conf
+main configuration file
+.TP
+.B /etc/warnquota-ng/warnquota-ng.fs.*.conf
+configuration files for the monitored filesystems
+.TP
+.B /var/lib/warnquota-ng/warnquota-ng.fs.*.state
+notification state files
+.TP
+.B /etc/cron.d/warnquota-ng
+cron configuration file for warnquota-ng
+.PD
+.SH "SEE ALSO"
+.BR quota (1),
+.BR cron (8)
+.SH AUTHORS
+.BR warnquota-ng 
+was written by David Vincze <vincze.david@webcode.hu>
