@@ -119,6 +119,26 @@ if [ $? -ne 0 ]; then
     echo WARNING\! Cannot set permissions on ${WQNG_BINARYPATH}/warnquota-ng
 fi
 
+echo Installing man page
+if [ ! -f warnquota-ng.8 ]; then
+    echo man page warnquota-ng.8 not found in current directory. non-fatal, but there will be no man page for warnquota-ng.
+else
+    if [ `which mandb`x == x ]; then
+        echo no mandb found, so not installing page for warnquota-ng
+    else
+        if [ ! -d /usr/share/man/man8 ]; then
+            echo 
+        else
+            cp warnquota-ng.8 /usr/share/man/man8/warnquota-ng.8
+            chmod 644 /usr/share/man/man8/warnquota-ng.8
+            if [ `which gzip`x != x ]; then
+                gzip /usr/share/man/man8/warnquota-ng.8
+            fi
+            mandb -q
+        fi
+    fi
+fi
+
 echo Setting up cron
 if [ -f /etc/cron.d/warnquota-ng ]; then
     echo crontab already exists\! Leaving it as it is...
