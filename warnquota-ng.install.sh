@@ -127,7 +127,7 @@ else
         echo no mandb found, so not installing page for warnquota-ng
     else
         if [ ! -d /usr/share/man/man8 ]; then
-            echo 
+            echo directory for man chapter 8 does not exist, so not installing page for warnquota-ng
         else
             cp warnquota-ng.8 /usr/share/man/man8/warnquota-ng.8
             chmod 644 /usr/share/man/man8/warnquota-ng.8
