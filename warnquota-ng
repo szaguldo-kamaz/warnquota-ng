@@ -83,6 +83,13 @@ class config:
     warnquotafs={ "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'Email storage space'} ],
                   "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"} ]
                 };
+
+    # default SMTP settings
+    smtphost="localhost";
+    smtpport=25;
+    smtpssl=False;
+    smtpstarttls=False;
+
     defaultlang="en";
     defaultsendinodetouser=False;
     hostname='';
@@ -170,8 +177,17 @@ def wqng_sendmail(fromaddr,fromname,toaddr,subject,mailtext):
             msg['From']=email.header.Header(fromname,"utf-8").encode()+" <"+fromaddr+">";
             msg['To']=toaddr;
 
-            smtpconn=smtplib.SMTP('localhost');
-            smtpconn.send_message(msg);
+            if config.smtpssl:
+                smtpconn=smtplib.SMTP_SSL(config.smtphost, config.smtpport);
+            else:
+                smtpconn=smtplib.SMTP(config.smtphost, config.smtpport);
+                if config.smtpstarttls:
+                    smtpconn.starttls();
+            try:
+                smtpconn.send_message(msg);
+            except:
+                print("Cannot send mail to: %s!"%(toaddr));
+
             smtpconn.quit();
 
 
