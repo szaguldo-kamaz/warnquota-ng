@@ -532,7 +532,7 @@ def checkquota(fs):
 
 configfile=config.configfiledir+"/warnquota-ng.conf";
 if not os.path.isfile(configfile):
-    print("configuration file does not exist: %s!"%(configfile));
+    print("cannot open configuration file: %s!"%(configfile));
     sys.exit(1);
 
 try:
