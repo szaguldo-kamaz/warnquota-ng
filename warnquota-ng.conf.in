@@ -4,7 +4,7 @@
 config.hostname='WQNG_HOSTNAME';
 
 # currently 6 different time intervals are supported only (in seconds)
-config.alertintervals=[7200,43200,86400,259200,604800]; # sent reminders after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
+config.alertintervals=[7200,43200,86400,259200,604800]; # send reminders after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
 
 # filesystems to be monitored
 # "arbitrary name": [ "/mount_point", {'hu':"Name for the file system in Hun", 'en":"Name for the file system in Eng"} ]
