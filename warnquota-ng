@@ -464,7 +464,7 @@ def checkquota(fs):
                             if not simulation:
                                 wqng_sendmail(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
                                 syslog.syslog('Mail sent to admin regarding user: %s to %s'%(useridentifier,mailtoadmin_to_addr));
-                            if sendquotaadminmail and debuglevel > 1:
+                            if debuglevel > 1:
                                 print(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
 
                     warnquotastatenew[username]=[firstalert,lastalert,alertcount,violationtype];
@@ -482,13 +482,13 @@ def checkquota(fs):
         quotaokusers=set(warnquotastate).difference(set(warnquotastatenew));
 
         if debuglevel > 2:
-                print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][1][maillang],list(quotaokusers)));
-                print("\nwarnquotastate:\n");
-                for i in warnquotastate.keys():
-                    print("%s: %s"%(i,warnquotastate[i]));
-                print("\nwarnquotastatenew:\n");
-                for i in warnquotastatenew.keys():
-                    print("%s: %s"%(i,warnquotastatenew[i]));
+            print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][1][maillang],list(quotaokusers)));
+            print("\nwarnquotastate:\n");
+            for i in warnquotastate.keys():
+                print("%s: %s"%(i,warnquotastate[i]));
+            print("\nwarnquotastatenew:\n");
+            for i in warnquotastatenew.keys():
+                print("%s: %s"%(i,warnquotastatenew[i]));
 
         # send mail to notify user that quota is ok now
         for username in list(quotaokusers):
