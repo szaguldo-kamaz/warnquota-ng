@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# warnquota-ng v0.30beta
+# warnquota-ng v0.30
 #
 # author: David Vincze
 # github.com/szaguldo-kamaz/
@@ -11,7 +11,7 @@ import sys, os, time, datetime, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
-wqng_version="0.30beta";
+wqng_version="0.30";
 simulation=False;
 debuglevel=0;
 

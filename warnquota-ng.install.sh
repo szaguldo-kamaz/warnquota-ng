@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# warnquota-ng v0.30beta installer
+# warnquota-ng v0.30 installer
 #
 # author: David Vincze
 # github.com/szaguldo-kamaz/
