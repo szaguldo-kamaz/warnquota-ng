@@ -19,6 +19,24 @@ if [ `id -u` -ne 0 ]; then
     echo Probably you need to be root, but continuing anyway...
 fi
 
+if [ `which python3`x == x ]; then
+    if [ `which python`x == x ]; then
+        echo No python interpreter was found. Install Python 3 first.
+        exit 1
+    else
+        if [ `python --version|cut -f2 -d" "|cut -f1 -d.` -eq 3 ]; then
+            PYTHONBINPATH=`which python`
+            echo Python 3 found at: ${PYTHONBINPATH}
+        else
+            echo Python interpreter was found, but not version 3. Install Python 3 first.
+            exit 1
+        fi
+    fi
+else
+    PYTHONBINPATH=`which python3`
+    echo Python 3 found at: ${PYTHONBINPATH}
+fi
+
 if [ ${WQNG_RQPATH}x == x ]; then
     echo \"repquota\" not found, please install quota tools first, or check PATH
     exit 1
@@ -105,7 +123,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo Installing executable
-cp -f warnquota-ng ${WQNG_BINARYPATH}/
+echo \#\!${PYTHONBINPATH} > ${WQNG_BINARYPATH}/warnquota-ng
+tail -n +2 warnquota-ng >> ${WQNG_BINARYPATH}/warnquota-ng
 if [ $? -ne 0 ]; then
     echo ERROR while copying executable into ${WQNG_BINARYPATH}/
     exit 2
