@@ -151,7 +151,7 @@ else
             cp warnquota-ng.8 /usr/share/man/man8/warnquota-ng.8
             chmod 644 /usr/share/man/man8/warnquota-ng.8
             if [ `which gzip`x != x ]; then
-                gzip /usr/share/man/man8/warnquota-ng.8
+                gzip -f /usr/share/man/man8/warnquota-ng.8
             fi
             mandb -q
         fi
