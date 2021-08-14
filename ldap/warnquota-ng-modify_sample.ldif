@@ -1,0 +1,28 @@
+dn: uid=mulder,ou=users,dc=example,dc=com
+add: objectClass
+objectClass: warnquotang
+-
+add: warnquotangUserEmail
+warnquotangUserEmail: fox.mulder@example.com
+-
+add: warnquotangAdminEmail
+warnquotangAdminEmail: walter.skinner@example.com
+-
+add: warnquotangWarnPercentBlocks
+warnquotangWarnPercentBlocks: 90
+-
+add: warnquotangWarnPercentInodes
+warnquotangWarnPercentInodes: 0
+-
+add: warnquotangWarnAdmin
+warnquotangWarnAdmin: 0
+-
+add: warnquotangAlertAdmin
+warnquotangAlertAdmin: 1
+-
+add: warnquotangAlertWarnUserInodes
+warnquotangAlertWarnUserInodes: 0
+-
+add: warnquotangMailLanguage
+warnquotangMailLanguage: en
+
