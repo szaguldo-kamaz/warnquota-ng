@@ -1,0 +1,76 @@
+# warnquota-ng LDAP schema v1.0
+#
+# author: David Vincze
+# github.com/szaguldo-kamaz/
+# david.vincze@webcode.hu
+#
+# 1.3.6.1.4.1.57797 belongs to WebCode Kft.
+# 1.3.6.1.4.1.57797.3 warnquota-ng
+# 1.3.6.1.4.1.57797.3.2 warnquota-ng LDAP Elements
+# 1.3.6.1.4.1.57797.3.2.1 attributeTypes
+# 1.3.6.1.4.1.57797.3.2.2 objectClasses
+#
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.1 NAME 'warnquotangUserEmail'
+                DESC 'Send user notifications to this e-mail address'
+                EQUALITY caseExactMatch
+                SUBSTR caseExactSubstringsMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128}
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.2 NAME 'warnquotangAdminEmail'
+                DESC 'Send admin notifications to this e-mail address'
+                EQUALITY caseExactMatch
+                SUBSTR caseExactSubstringsMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128}
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.3 NAME 'warnquotangWarnPercentBlocks'
+                DESC 'Warn user/admin when this percentage of block usage is reached'
+                EQUALITY integerMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.4 NAME 'warnquotangWarnPercentInodes'
+                DESC 'Warn user/admin when this percentage of inode usage is reached'
+                EQUALITY integerMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.5 NAME 'warnquotangWarnAdmin'
+                DESC 'Warn admin regarding percentage warnings (0=F/1=T)'
+                EQUALITY integerMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.6 NAME 'warnquotangAlertAdmin'
+                DESC 'Alert admin regarding this user (0=F/1=T)'
+                EQUALITY integerMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.7 NAME 'warnquotangAlertWarnUserInodes'
+                DESC 'Alert (quota limit reached) or warn (percentage reached) user regarding inode count violations (0=F/1=T)'
+                EQUALITY integerMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+                SINGLE-VALUE
+              )
+
+attributeType ( 1.3.6.1.4.1.57797.3.2.1.8 NAME 'warnquotangMailLanguage'
+                DESC 'Language to use in the mails'
+                EQUALITY caseExactMatch
+                SUBSTR caseExactSubstringsMatch
+                SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{2}
+                SINGLE-VALUE
+              )
+
+
+objectClass ( 1.3.6.1.4.1.57797.3.2.2.1 NAME 'warnquotang' SUP top AUXILIARY
+              DESC 'warnquota-ng objectClass'
+              MUST ( warnquotangUserEmail $ warnquotangAdminEmail $ warnquotangWarnPercentBlocks $ warnquotangWarnPercentInodes $ warnquotangWarnAdmin $ warnquotangAlertAdmin $ warnquotangAlertWarnUserInodes $ warnquotangMailLanguage )
+            )
