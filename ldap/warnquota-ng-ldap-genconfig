@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+#
+# warnquota-ng-ldap-genconfig v0.10
+#
+# author: David Vincze
+# github.com/szaguldo-kamaz/
+# david.vincze@webcode.hu
+#
+#
+
+import os, sys
+
+wqng_ldapgenconfig_version="0.10";
+ldapsearchbinpath="/usr/bin/ldapsearch";
+ldapfilter="(objectClass=warnquotang)";
+debuglevel=0;
+
+if len(sys.argv) > 1:
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print("""usage: warnquota-ng-ldap-genconfig [options] [ldap_filter]
+Options:
+-h : print this help message and exit (also --help)
+-V : print version information and exit (also --version)
+-d : increase debuglevel (also -v)
+ldap_filter: this will be &-ed with the default ldap filter (objectClass=warnquotang)""");
+        sys.exit(0);
+    if '-V' in sys.argv or '--version' in sys.argv:
+        print("warnquota-ng-ldap-genconfig "+str(wqng_ldapgenconfig_version));
+        sys.exit(0);
+    debuglevel=(sys.argv.count('-d')+sys.argv.count('-v'));
+
+    for currarg in sys.argv[1:]:
+        if currarg[0] == '-':
+            continue
+        else:
+            if (currarg[0] == '(' and currarg[-1] != ')') or (currarg[0] != '(' and currarg[-1] == ')'):
+                print("Syntax error in ldap_filter, parentheses are not paired: %s"%(currarg))
+                sys.exit(1);
+            if (currarg[0] == '(' and currarg[-1] == ')'):
+                currarg=currarg[1:-1];
+            if '=' not in currarg:
+                print("Syntax error in ldap_filter, no = found: %s"%(currarg))
+                sys.exit(1);
+            ldapfilter="(&(objectClass=warnquotang)(%s))"%(currarg)
+            break
+
+
+if not os.path.isfile(ldapsearchbinpath):
+    print("Cannot find ldapsearch at: %s"%(ldapsearchbinpath));
+    sys.exit(1);
+
+if debuglevel>0:
+    sys.stderr.write("Using ldap_filter: %s\n"%(ldapfilter));
+
+lshandle=os.popen(ldapsearchbinpath+""" -x -LLL '%s' cn warnquotangUserEmail warnquotangAdminEmail warnquotangWarnPercentBlocks warnquotangWarnPercentInodes warnquotangWarnAdmin warnquotangAlertAdmin warnquotangAlertWarnUserInodes warnquotangMailLanguage"""%(ldapfilter),'r');
+ls=lshandle.read();
+exitval=lshandle.close();
+
+if exitval != None:
+    print('Something is wrong with ldapsearch (error in filter?): %d'%(exitval));
+    sys.exit(1);
+
+if len(ls) == 0:
+    if debuglevel > 0:
+        print("Empty result from ldapsearch.");
+    sys.exit(0);
+
+userdata={};
+users={};
+user='';
+
+for i in ls.split('\n'):
+    if i=='': continue
+    i=i.split(':');
+    if i[0]=='dn':
+        if user != '':
+            users[user]=userdata;
+        userdata={};
+        user=i[1][1:].split("=")[1].split(',')[0];
+        continue
+    userdata[i[0]]=i[1][1:];
+users[user]=userdata;
+
+for i in users.keys():
+    print("""config.warnquotauser['%s']=["%s","%s","%s",%s,%s,%s,%s,%s,"%s"]"""%(i,users[i]['cn'],
+        users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
+        users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
+        users[i]['warnquotangWarnAdmin'].replace('1','True').replace('0','False'),
+        users[i]['warnquotangAlertAdmin'].replace('1','True').replace('0','False'),
+        users[i]['warnquotangAlertWarnUserInodes'].replace('1','True').replace('0','False'),
+        users[i]['warnquotangMailLanguage']));
