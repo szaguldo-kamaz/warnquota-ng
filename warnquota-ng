@@ -89,6 +89,9 @@ class config:
     smtpport=25;
     smtpssl=False;
     smtpstarttls=False;
+    smtpauth=False;
+    smtpauth_username='';
+    smtpauth_password='';
 
     defaultlang="en";
     defaultsendinodetouser=False;
@@ -183,6 +186,13 @@ def wqng_sendmail(fromaddr,fromname,toaddr,subject,mailtext):
                 smtpconn=smtplib.SMTP(config.smtphost, config.smtpport);
                 if config.smtpstarttls:
                     smtpconn.starttls();
+
+            if config.smtpauth:
+                try:
+                    smtpconn.login(config.smtpauth_username,config.smtpauth_password);
+                except:
+                    print("SMTP AUTH error."); # but we can still try to send...
+
             try:
                 smtpconn.send_message(msg);
             except:

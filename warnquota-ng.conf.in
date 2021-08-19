@@ -19,6 +19,9 @@ config.smtphost="localhost";
 config.smtpport=25;
 config.smtpssl=False;
 config.smtpstarttls=False;
+config.smtpauth=False;
+config.smtpauth_username='warnquota-ng';
+config.smtpauth_password='csacskamacskamocska';
 
 # if a user is not specified in the fs config, then use these values
 config.defaultlang="en";
