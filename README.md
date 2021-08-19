@@ -14,8 +14,8 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
    (not required to be on the same system, e.g. can be a gmail address)
  - multi-language support \
    (currently English and Hungarian languages)
- - uses SMTP directly with SSL/STARTTLS support
- - per-user configuration
+ - uses SMTP directly with SSL/STARTTLS/AUTH support
+ - per-user configuration (preliminary support for LDAP)
 
 ## Requirements
  - Python 3 (tested with 3.2)
