@@ -23,6 +23,9 @@ config.smtpauth=False;
 config.smtpauth_username='warnquota-ng';
 config.smtpauth_password='csacskamacskamocska';
 
+# users not in the fs config can be ignored by setting this to True
+config.knownusersonly=False;
+
 # if a user is not specified in the fs config, then use these values
 config.defaultlang="en";
 config.defaultsendinodetouser=False;

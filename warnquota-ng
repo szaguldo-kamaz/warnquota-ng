@@ -93,6 +93,7 @@ class config:
     smtpauth_username='';
     smtpauth_password='';
 
+    knownusersonly=False;
     defaultlang="en";
     defaultsendinodetouser=False;
     hostname='';
@@ -256,6 +257,41 @@ def checkquota(fs):
                     continue
                 rqfields=i.split();
                 username=rqfields[0];
+
+                # has an associated config entry
+                if (username in config.warnquotauser.keys()):
+                    useridentifier=config.warnquotauser[username][0];
+                    alertblockpercent=config.warnquotauser[username][3];
+                    try:
+                        alertinodepercent=float(config.warnquotauser[username][4]);
+                    except:
+                        alertinodepercent=0.0;
+                        print('Error in config: %s username: %s alertinodepercent: %s'%(fsconffilepath, username, config.warnquotauser[username][4]));
+                    alertadminalert=config.warnquotauser[username][5];
+                    if alertadminalert != True and alertadminalert != False:
+                        alertadminalert=True;
+                    overadminalert=config.warnquotauser[username][6];
+                    if overadminalert != True and overadminalert != False:
+                        overadminalert=True;
+                    alertuserinode=config.warnquotauser[username][7];
+                    if alertuserinode != True and alertuserinode != False:
+                        alertuserinode=True;
+                    maillang=config.warnquotauser[username][8];
+                    if maillang not in config.supportedlanguages:
+                        maillang=config.defaultlang;
+                else: # user does not have an entry in the configuration file
+                    if config.knownusersonly:
+                        continue
+                    useridentifier=username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
+                    alertblockpercent=0;
+                    alertinodepercent=0;
+                    alertadminalert=True;
+                    overadminalert=True;
+                    sendinodetouser=config.defaultsendinodetouser;
+                    alertblock=False;
+                    alertinode=False;
+                    maillang=config.defaultlang;
+
                 blocknum=float(rqfields[2]);
                 blocklim=float(rqfields[3]);
                 if debuglevel > 2:
@@ -298,38 +334,6 @@ def checkquota(fs):
                             graceinode=int(graceinode);
                         except:
                             graceinode=0;
-
-                # has an associated config entry
-                if  (username in config.warnquotauser.keys()):
-                    useridentifier=config.warnquotauser[username][0];
-                    alertblockpercent=config.warnquotauser[username][3];
-                    try:
-                        alertinodepercent=float(config.warnquotauser[username][4]);
-                    except:
-                        alertinodepercent=0.0;
-                        print('Error in config: %s username: %s alertinodepercent: %s'%(fsconffilepath, username, config.warnquotauser[username][4]));
-                    alertadminalert=config.warnquotauser[username][5];
-                    if alertadminalert != True and alertadminalert != False:
-                        alertadminalert=True;
-                    overadminalert=config.warnquotauser[username][6];
-                    if overadminalert != True and overadminalert != False:
-                        overadminalert=True;
-                    alertuserinode=config.warnquotauser[username][7];
-                    if alertuserinode != True and alertuserinode != False:
-                        alertuserinode=True;
-                    maillang=config.warnquotauser[username][8];
-                    if maillang not in config.supportedlanguages:
-                        maillang=config.defaultlang;
-                else:
-                    useridentifier=username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
-                    alertblockpercent=0;
-                    alertinodepercent=0;
-                    alertadminalert=True;
-                    overadminalert=True;
-                    sendinodetouser=config.defaultsendinodetouser;
-                    alertblock=False;
-                    alertinode=False;
-                    maillang=config.defaultlang;
 
                 # alert percentage has been reached
                 if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= alertblockpercent/100.0):
