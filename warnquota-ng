@@ -273,9 +273,9 @@ def checkquota(fs):
                     overadminalert=config.warnquotauser[username][6];
                     if overadminalert != True and overadminalert != False:
                         overadminalert=True;
-                    alertuserinode=config.warnquotauser[username][7];
-                    if alertuserinode != True and alertuserinode != False:
-                        alertuserinode=True;
+                    sendinodetouser=config.warnquotauser[username][7];
+                    if sendinodetouser != True and sendinodetouser != False:
+                        sendinodetouser=True;
                     maillang=config.warnquotauser[username][8];
                     if maillang not in config.supportedlanguages:
                         maillang=config.defaultlang;
