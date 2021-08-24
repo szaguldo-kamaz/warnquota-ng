@@ -299,8 +299,6 @@ def checkquota(fs):
                         except:
                             graceinode=0;
 
-                maillang=config.defaultlang;
-
                 # has an associated config entry
                 if  (username in config.warnquotauser.keys()):
                     useridentifier=config.warnquotauser[username][0];
@@ -322,24 +320,25 @@ def checkquota(fs):
                     maillang=config.warnquotauser[username][8];
                     if maillang not in config.supportedlanguages:
                         maillang=config.defaultlang;
-                    # alert percentage has been reached
-                    if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= alertblockpercent/100.0):
-                        alertblock=True;
-                    if (alertinodepercent != 0.0) and ((inodenum / inodelim) >= alertinodepercent/100.0):
-                        alertinode=True;
                 else:
                     useridentifier=username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
                     alertblockpercent=0;
                     alertinodepercent=0;
                     alertadminalert=True;
                     overadminalert=True;
-                    alertuserinode=True;
+                    sendinodetouser=config.defaultsendinodetouser;
                     alertblock=False;
                     alertinode=False;
                     maillang=config.defaultlang;
 
+                # alert percentage has been reached
+                if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= alertblockpercent/100.0):
+                    alertblock=True;
+                if (alertinodepercent != 0.0) and ((inodenum / inodelim) >= alertinodepercent/100.0):
+                    alertinode=True;
+
                 if debuglevel > 2:
-                    print("Alertadminalert: %s Overadminalert: %s Alertuserinode: %s"%(alertadminalert, overadminalert, alertuserinode));
+                    print("Alertadminalert: %s Overadminalert: %s Sendinodetouser: %s"%(alertadminalert, overadminalert, sendinodetouser));
                     print("Overblock: %s Overinode: %s alertblock: %s alertinode: %s - blocknum: %s blocklim: %s inodenum: %s inodelim: %s"%(overblock, overinode, alertblock, alertinode, blocknum, blocklim, inodenum, inodelim));
 
                 # evaluation and construction of mail
@@ -441,7 +440,7 @@ def checkquota(fs):
                                 mailtoadmin_text+="\n%s: %s\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,blocknum/blocklim*100,config.mailbody_overquota_alertlimit[maillang],alertblockpercent);
 
                         if overinode:
-                            if alertuserinode:
+                            if sendinodetouser:
                                 sendquotausermail=True;
                                 if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
                                     mailtouser_text+="\n%s: %s\n%s%s: %d/%d\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,config.mailbody_overquota_gracetime[maillang],graceinode,config.mailbody_overquota_gracedays[maillang]);
@@ -451,7 +450,7 @@ def checkquota(fs):
                             sendquotaadminmail=True;
 
                         if alertinode and not overinode:
-                            if alertuserinode:
+                            if sendinodetouser:
                                 sendquotausermail=True;
                                 if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
                                     mailtouser_text+="\n%s: %s\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,inodenum/inodelim*100,config.mailbody_overquota_alertlimit[maillang],alertinodepercent);
