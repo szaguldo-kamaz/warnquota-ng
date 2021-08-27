@@ -1,0 +1,21 @@
+# This file is optional
+# When using the -L option of warnquota-ng, the contents of this file will be copied into the generated fs config file
+#
+# warnquota-ng fs config generated using LDAP dir data
+#
+# key - system user id
+# 0 - user id shown
+# 1 - use this email address for warnings and alerts
+# 2 - email address of the administrator, who should also get alerts regarding this user
+# 3 - warn about block quota when a certain percentage % has been reached (1-100, 0=don't warn) - blocks
+# 4 - warn about inode quota when a certain percentage % has been reached (1-100, 0=don't warn) - inodes
+# 5 - should the admin be notified regarding percentage warnings (False/True)
+# 6 - should the admin be notified when softlimit was reached (False/True)
+# 7 - should the user be notified regarding inode quotas (or only the admin should get the alert) (False/True)
+# 8 - preferred language (currently supported: "hu" or "en")
+
+# list some users who are not in the LDAP dir, or do not have warnquota-ng attribs
+config.warnquotauser['kamaznotinldap']=["kamaznotinldap","szaguldo-kamaz@github.com","root@example.com",90,90,True,True,True,"hu"]
+config.warnquotauser['littlegreenman']=["theyaregrey","dana.scully@example.com","root@example.com",95,95,True,True,True,"en"]
+
+# users found in LDAP:

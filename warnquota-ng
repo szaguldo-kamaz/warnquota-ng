@@ -719,6 +719,15 @@ elif wqng_runmode == 'ldapconfgen':
             shutil.copy2(fsconffilepath,"/var/backups/");
 
         fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT);
+        if os.path.isfile(fsconffilepath+".head"):
+            if debuglevel > 0:
+                print("Using .head file: ",fsconffilepath+".head");
+            try:
+                fsconfigheaddata=open(fsconffilepath+".head","rt").read();
+            except:
+                print("Cannot read .head file: ",fsconffilepath+".head");
+                sys.exit(1);
+            os.write(fsconfhandle,bytes(fsconfigheaddata,"utf-8"));
         os.write(fsconfhandle,bytes(wqng_ldap_genconfig(user_ldapfilter),"utf-8"));
         os.close(fsconfhandle);
 
