@@ -7,13 +7,14 @@
 # david.vincze@webcode.hu
 #
 
-import sys, os, time, datetime, syslog, smtplib, email
+import sys, os, shutil, time, datetime, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
 wqng_version="0.30";
 simulation=False;
 debuglevel=0;
+wqng_runmode='normal';
 
 if len(sys.argv) > 1:
     if '-h' in sys.argv or '--help' in sys.argv:
@@ -22,6 +23,7 @@ Options:
 -h : print this help message and exit (also --help)
 -V : print version information and exit (also --version)
 -n : trial run (no state file updates and no mails sent)
+-L : generate fs configs from LDAP directory
 -d : increase debuglevel (also -v)""");
         sys.exit(0);
     if '-V' in sys.argv or '--version' in sys.argv:
@@ -29,6 +31,8 @@ Options:
         sys.exit(0);
     if '-n' in sys.argv:
         simulation=True;
+    if '-L' in sys.argv:
+        wqng_runmode='ldapconfgen';
     debuglevel=(sys.argv.count('-d')+sys.argv.count('-v'));
 
 
@@ -92,6 +96,10 @@ class config:
     smtpauth=False;
     smtpauth_username='';
     smtpauth_password='';
+
+    # LDAP settings
+    ldapsearchbinpath="/usr/bin/ldapsearch";
+    mainldapfilter="objectClass=warnquotang";
 
     knownusersonly=False;
     defaultlang="en";
@@ -164,6 +172,76 @@ class config:
     mailbody_quotaok_admin1['en']='Dear Administrator,\n\nYour customer';
     mailbody_quotaok_admin2['en']='is below quota again!';
 
+
+def wqng_ldap_genconfig(user_ldapfilter):
+
+    if (user_ldapfilter != None):
+        if (user_ldapfilter[0] == '(' and user_ldapfilter[-1] != ')') or (user_ldapfilter[0] != '(' and user_ldapfilter[-1] == ')'):
+            print("Syntax error in user_ldapfilter, parentheses are not paired: %s"%(user_ldapfilter))
+            sys.exit(1);
+        if (user_ldapfilter[0] == '(' and user_ldapfilter[-1] == ')'):
+            user_ldapfilter=user_ldapfilter[1:-1];
+        if '=' not in user_ldapfilter:
+            print("Syntax error in user_ldapfilter, no = found: %s"%(user_ldapfilter))
+            sys.exit(1);
+        ldapfilter="(&(%s)(%s))"%(config.mainldapfilter,user_ldapfilter)
+    else:
+        ldapfilter="(%s)"%(config.mainldapfilter);
+
+    if debuglevel>0:
+        print("Using ldap_filter: %s\n"%(ldapfilter));
+
+    lshandle=os.popen(config.ldapsearchbinpath+""" -x -LLL '%s' cn warnquotangUserEmail warnquotangAdminEmail warnquotangWarnPercentBlocks warnquotangWarnPercentInodes warnquotangWarnAdmin warnquotangAlertAdmin warnquotangAlertWarnUserInodes warnquotangMailLanguage"""%(ldapfilter),'r');
+    ls=lshandle.read();
+    exitval=lshandle.close();
+
+    if exitval != None:
+        print('Something is wrong with ldapsearch (filter problem?): %d'%(exitval));
+        sys.exit(1);
+
+    if len(ls) == 0:
+        if debuglevel > 0:
+            print("Empty result from ldapsearch.");
+        sys.exit(0);
+
+    userdata={};
+    users={};
+    user='';
+
+    for i in ls.split('\n'):
+        if i=='': continue
+        i=i.split(':');
+        if i[0]=='dn':
+            if user != '':
+                users[user]=userdata;
+            userdata={};
+            user=i[1][1:].split("=")[1].split(',')[0];
+            continue
+        userdata[i[0]]=i[1][1:];
+    users[user]=userdata;
+
+    wqng_config_text='';
+    for i in users.keys():
+        if debuglevel>1:
+            print("""config.warnquotauser['%s']=["%s","%s","%s",%s,%s,%s,%s,%s,"%s"]"""%(
+                i,users[i]['cn'],
+                users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
+                users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
+                users[i]['warnquotangWarnAdmin'].replace('1','True').replace('0','False'),
+                users[i]['warnquotangAlertAdmin'].replace('1','True').replace('0','False'),
+                users[i]['warnquotangAlertWarnUserInodes'].replace('1','True').replace('0','False'),
+                users[i]['warnquotangMailLanguage']));
+
+        wqng_config_text+="""config.warnquotauser['%s']=["%s","%s","%s",%s,%s,%s,%s,%s,"%s"]\n"""%(
+            i,users[i]['cn'],
+            users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
+            users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
+            users[i]['warnquotangWarnAdmin'].replace('1','True').replace('0','False'),
+            users[i]['warnquotangAlertAdmin'].replace('1','True').replace('0','False'),
+            users[i]['warnquotangAlertWarnUserInodes'].replace('1','True').replace('0','False'),
+            users[i]['warnquotangMailLanguage']);
+
+    return wqng_config_text
 
 
 def wqng_sendmail(fromaddr,fromname,toaddr,subject,mailtext):
@@ -612,5 +690,38 @@ config.mailbody_overquota_footer_admin['en']=config.mailbody_overquota_footer_ad
 
 syslog.openlog('warnquota-ng');
 
-for fs in config.warnquotafs.keys():
-    checkquota(fs);
+if wqng_runmode == 'normal':
+    for fs in config.warnquotafs.keys():
+        checkquota(fs);
+
+elif wqng_runmode == 'ldapconfgen':
+    if not os.path.isfile(config.ldapsearchbinpath):
+        print("Cannot find ldapsearch at: %s"%(config.ldapsearchbinpath));
+        sys.exit(1);
+
+    if (config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] != ')') or (config.mainldapfilter[0] != '(' and config.mainldapfilter[-1] == ')'):
+        print("Syntax error in mainldapfilter, parentheses are not paired: %s"%(config.mainldapfilter))
+        sys.exit(1);
+
+    if config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] == ')':
+        config.mainldapfilter=config.mainldapfilter[1:-1];
+
+    for wqngfs in config.warnquotafs.keys():
+        if len(config.warnquotafs[wqngfs]) == 3:
+            user_ldapfilter=config.warnquotafs[wqngfs][2];
+        else:
+            user_ldapfilter=None;
+        if debuglevel > 0:
+            print("user ldapfilter for %s: %s"%(wqngfs,user_ldapfilter));
+
+        fsconffilepath=config.configfiledir+"/warnquota-ng.fs."+wqngfs+".conf";
+        if os.path.isfile(fsconffilepath):
+            shutil.copy2(fsconffilepath,"/var/backups/");
+
+        fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT);
+        os.write(fsconfhandle,bytes(wqng_ldap_genconfig(user_ldapfilter),"utf-8"));
+        os.close(fsconfhandle);
+
+else:
+    print("ERROR: unknown runmode! BUG?");
+    sys.exit(1);

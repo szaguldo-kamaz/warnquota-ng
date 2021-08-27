@@ -13,6 +13,12 @@ config.warnquotafs={ "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'E
                    };
 # fs config files should be named like this: warnquota-ng.fs."arbitrary name".conf
 # according to the above defined: warnquota-ng.fs.mail.conf and warnquota-ng.fs.home.conf
+#
+# if you want to use LDAP filters when generating fs configs from an LDAP directory:
+#config.warnquotafs={ "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'Email storage space'}, "(usertype=mail)" ],
+#                     "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"}, "(usertype=web)" ]
+#                   };
+
 
 # SMTP server settings
 config.smtphost="localhost";
