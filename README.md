@@ -15,7 +15,8 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
  - multi-language support \
    (currently English and Hungarian languages)
  - uses SMTP directly with SSL/STARTTLS/AUTH support
- - per-user configuration (preliminary support for LDAP)
+ - per-user configuration
+ - can store user configuration in LDAP directory (using warnquota-ng.schema)
 
 ## Requirements
  - Python 3 (tested with 3.2)
@@ -27,4 +28,6 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
  1. Run **warnquota-ng.install.sh** as root (modify the env vars if you don't like the default paths)
  2. Revise the generated configuration files
  3. *Optional:* Create customized per-user config based on warnquota-ng.fs.SAMPLE.conf
- 
+ 4a. *Optional:* Add warnquota-ng.schema to your LDAP server configuration
+ 4b. *Optional:* Add warnquota-ng attributes for your users in LDAP
+ 4c. *Optional:* Uncomment the "warnquota-ng -L" command in the warnquota-ng cron configuration file

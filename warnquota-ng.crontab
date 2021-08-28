@@ -1,3 +1,5 @@
 */5 * * * *	root	/usr/sbin/warnquota-ng
 # to force UTF-8 locale use this line:
 #*/5 * * * *	root	env LC_ALL=en_US.UTF-8 /usr/sbin/warnquota-ng
+# Regen fs configs from LDAP
+#11 4 * * *	root	/usr/sbin/warnquota-ng -L
