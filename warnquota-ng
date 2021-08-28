@@ -721,6 +721,7 @@ elif wqng_runmode == 'ldapconfgen':
                 shutil.copy2(fsconffilepath,config.configbackuppath);
             except:
                 print("Cannot backup old fsconfig: %s -> %s",fsconffilepath,config.configbackuppath);
+                sys.exit(1);
 
         fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT);
         if os.path.isfile(fsconffilepath+".head"):
