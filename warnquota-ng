@@ -76,6 +76,7 @@ class config:
 
     supportedlanguages=["hu","en"];
     configfiledir="/etc/warnquota-ng";
+    configbackuppath="/var/backups/";
     hostname='';
 
     # defaults
@@ -716,7 +717,10 @@ elif wqng_runmode == 'ldapconfgen':
 
         fsconffilepath=config.configfiledir+"/warnquota-ng.fs."+wqngfs+".conf";
         if os.path.isfile(fsconffilepath):
-            shutil.copy2(fsconffilepath,"/var/backups/");
+            try:
+                shutil.copy2(fsconffilepath,config.configbackuppath);
+            except:
+                print("Cannot backup old fsconfig: %s -> %s",fsconffilepath,config.configbackuppath);
 
         fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT);
         if os.path.isfile(fsconffilepath+".head"):
