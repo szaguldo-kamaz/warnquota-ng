@@ -756,7 +756,7 @@ elif wqng_runmode == 'ldapconfgen':
         try:
             os.remove(fsconflockfilepath);
         except:
-            print("Error removing lockfile: %s");
+            print("Error removing lockfile: ",fsconflockfilepath);
 
 else:
     print("ERROR: unknown runmode! BUG?");
