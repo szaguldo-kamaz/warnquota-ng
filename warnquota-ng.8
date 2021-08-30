@@ -4,7 +4,7 @@ warnquota-ng \- notify users and admins about reaching quota limits
 .SH SYNOPSIS
 .B warnquota-ng
 [
-.B \-nvdVh
+.B \-nLvdVh
 ]
 .SH DESCRIPTION
 .B warnquota-ng
@@ -14,6 +14,9 @@ Similarly to the original warnquota it is typically run via
 .TP
 .BR \-n
 Trial run. Quota limits and previous state information will be processed, but no mails will be sent to users/admins, and no updates will be made to the state files.
+.TP
+.BR \-L
+Gather user configuration from LDAP and generate FS configuration files for each monitored filesystem.
 .TP
 .BR \-v , " \-d"
 Increase verbosity.
