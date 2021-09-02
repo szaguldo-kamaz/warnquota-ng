@@ -101,6 +101,7 @@ class config:
     # LDAP settings
     ldapsearchbinpath="/usr/bin/ldapsearch";
     mainldapfilter="objectClass=warnquotang";
+    ldap_fsconf_perm=0o640;
 
     knownusersonly=False;
     defaultlang="en";
@@ -634,7 +635,7 @@ def checkquota(fs):
 
         # update state file
         if not simulation:
-            fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_WRONLY+os.O_TRUNC);
+            fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_WRONLY+os.O_TRUNC,0o640);
             os.write(fsstatehandle,bytes("warnquotastate=%s\n"%(warnquotastatenew),"utf-8"));
             os.close(fsstatehandle);
 
@@ -734,13 +735,13 @@ elif wqng_runmode == 'ldapconfgen':
             continue
 
         try:
-            fsconflockhandle=os.open(fsconflockfilepath,os.O_WRONLY+os.O_CREAT);
+            fsconflockhandle=os.open(fsconflockfilepath,os.O_WRONLY+os.O_CREAT, 0o600);
         except:
             print("Error creating lockfile: ",fsconflockfilepath);
             sys.exit(1);
         os.close(fsconflockhandle);
 
-        fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT);
+        fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT, config.ldap_fsconf_perm);
         if os.path.isfile(fsconffilepath+".head"):
             if debuglevel > 0:
                 print("Using .head file: ",fsconffilepath+".head");
