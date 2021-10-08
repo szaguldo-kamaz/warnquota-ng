@@ -225,22 +225,22 @@ def wqng_ldap_genconfig(user_ldapfilter):
     wqng_config_text='';
     for i in users.keys():
         if debuglevel>1:
-            print("""config.warnquotauser['%s']=["%s","%s","%s",%s,%s,%s,%s,%s,"%s"]"""%(
+            print("%s:%s:%s:%s:%s:%s:%s:%s:%s:%s"%(
                 i,users[i]['cn'],
                 users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
                 users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
-                users[i]['warnquotangWarnAdmin'].replace('1','True').replace('0','False'),
-                users[i]['warnquotangAlertAdmin'].replace('1','True').replace('0','False'),
-                users[i]['warnquotangAlertWarnUserInodes'].replace('1','True').replace('0','False'),
+                users[i]['warnquotangWarnAdmin'].replace('1','yes').replace('0','no'),
+                users[i]['warnquotangAlertAdmin'].replace('1','yes').replace('0','no'),
+                users[i]['warnquotangAlertWarnUserInodes'].replace('1','yes').replace('0','no'),
                 users[i]['warnquotangMailLanguage']));
 
-        wqng_config_text+="""config.warnquotauser['%s']=["%s","%s","%s",%s,%s,%s,%s,%s,"%s"]\n"""%(
+        wqng_config_text+="%s:%s:%s:%s:%s:%s:%s:%s:%s:%s\n"%(
             i,users[i]['cn'],
             users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
             users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
-            users[i]['warnquotangWarnAdmin'].replace('1','True').replace('0','False'),
-            users[i]['warnquotangAlertAdmin'].replace('1','True').replace('0','False'),
-            users[i]['warnquotangAlertWarnUserInodes'].replace('1','True').replace('0','False'),
+            users[i]['warnquotangWarnAdmin'].replace('1','yes').replace('0','no'),
+            users[i]['warnquotangAlertAdmin'].replace('1','yes').replace('0','no'),
+            users[i]['warnquotangAlertWarnUserInodes'].replace('1','yes').replace('0','no'),
             users[i]['warnquotangMailLanguage']);
 
     return wqng_config_text
@@ -295,11 +295,44 @@ def checkquota(fs):
         fsconffilepath=config.configfiledir+"/warnquota-ng.fs."+fs+".conf";
         if os.path.isfile(fsconffilepath):
             try:
-# TODO: yes this is evil, should be fixed
-                exec(open(fsconffilepath).read());
+                fsconflines=open(fsconffilepath).readlines();
             except:
-                print("Something is wrong with this config file (syntax error?): %s!"%(fsconffilepath));
+                print("Something went wrong while reading this config file (syntax error?): %s!"%(fsconffilepath));
                 sys.exit(1);
+
+            fsconflinecount=0;
+            for fsconfline in fsconflines:
+                fsconflinecount+=1;
+                fsconfline_s=fsconfline.strip();
+                if fsconfline_s == '' or fsconfline_s[0] == '#':
+                    continue
+                fsconffields=fsconfline_s.split(':');
+                if len(fsconffields) != 10:
+                    print("Error in fsconfig file line %s, skipping. Bad line: %s"%(fsconflinecount,fsconfline));
+                else:
+                    fscfg_sysuid=fsconffields[0];
+                    fscfg_uid=fsconffields[1];
+                    fscfg_useremail=fsconffields[2];
+                    fscfg_adminemail=fsconffields[3];
+                    try:
+                        fscfg_blockpercent=int(fsconffields[4]);
+                    except:
+                        print("Field 5 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount,fsconfline));
+                    fscfg_blockpercent=0;
+                    try:
+                        fscfg_inodepercent=int(fsconffields[5]);
+                    except:
+                        print("Field 6 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount,fsconfline));
+                        fscfg_inodepercent=0;
+                    fscfg_notifyadminpercentage=fsconffields[6] in ["True","true","1","On","on","Yes","yes"];
+                    fscfg_notifyadmin=fsconffields[7] in ["True","true","1","On","on","Yes","yes"];
+                    fscfg_notifyuserinode=fsconffields[8] in ["True","true","1","On","on","Yes","yes"];
+                    if fsconffields[9] in ["en","hu"]:
+                        fscfg_lang=fsconffields[9];
+                    else:
+                        print("Unsupported language setting in fsconfig file line %s, skipping (value set 'en'). Bad line: %s"%(fsconflinecount,fsconfline));
+                        fscfg_lang="en";
+                    config.warnquotauser[fscfg_sysuid]=[fscfg_uid,fscfg_useremail,fscfg_adminemail,fscfg_blockpercent,fscfg_inodepercent,fscfg_notifyadminpercentage,fscfg_notifyadmin,fscfg_notifyuserinode,fscfg_lang];
 
         warnquotastatenew={};
 
