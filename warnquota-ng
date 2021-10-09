@@ -634,7 +634,7 @@ def checkquota(fs):
         quotaokusers=set(warnquotastate).difference(set(warnquotastatenew));
 
         if debuglevel > 2:
-            print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][1][maillang],list(quotaokusers)));
+            print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][0],list(quotaokusers)));
             print("\nwarnquotastate:\n");
             for i in warnquotastate.keys():
                 print("%s: %s"%(i,warnquotastate[i]));
