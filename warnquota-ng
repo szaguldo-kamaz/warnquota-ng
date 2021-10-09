@@ -439,7 +439,7 @@ def checkquota(fs):
                     print("repquota fields: ", rqfields);
 
                 # at least the block limit has been reached
-                if rqfields[1][0] == '+' or rqfields[2] == rqfields[3] and (rqfields[3] != '0'):
+                if rqfields[1][0] == '+':
                     overblock=True;
                     graceblock=rqfields[5][0];
                     if graceblock == "n":
@@ -458,14 +458,12 @@ def checkquota(fs):
                     inodelim=float(rqfields[6]);
 
                 # if inode is over limit
-                if rqfields[1][1] == '+' or (overblock and rqfields[6] == rqfields[7]) or (not overblock and rqfields[5] == rqfields[6]):
-                    overinode=True
+                if rqfields[1][1] == '+':
+                    overinode=True;
                     # if both are over limit
-                    if   rqfields[1] == '++':
+                    if rqfields[1] == '++':
                         graceinode=rqfields[9][0];
-                    elif rqfields[1] == '+-':
-                        graceinode=rqfields[8][0];
-                    else:
+                    else: # '-+' - only inode count is over limit
                         graceinode=rqfields[8][0];
 
                     if graceinode == "n":
