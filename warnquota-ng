@@ -335,24 +335,47 @@ def checkquota(fs):
                     config.warnquotauser[fscfg_sysuid]=[fscfg_uid,fscfg_useremail,fscfg_adminemail,fscfg_blockpercent,fscfg_inodepercent,fscfg_notifyadminpercentage,fscfg_notifyadmin,fscfg_notifyuserinode,fscfg_lang];
 
         warnquotastatenew={};
+        warnquotastate={};
 
-        locals={};
-        globals={};
         statefilepath=config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state";
         if os.path.isfile(statefilepath):
-            try:
-# TODO: yes this is evil, should be fixed
-                exec(open(statefilepath).read(),globals,locals);
-            except:
-                print("Something is wrong with this statefile: %s!"%(statefilepath));
-                sys.exit(1);
-        else:
-            warnquotastate={};
 
-        try:
-            warnquotastate=locals['warnquotastate'];
-        except:
-            warnquotastate={};
+            try:
+                statefilelines=open(statefilepath).readlines();
+            except:
+                print("Cannot read this statefile: %s!"%(statefilepath));
+                sys.exit(1);
+
+            statefilelinecount=0;
+            for statefileline in statefilelines:
+                statefilelinecount+=1;
+                statefileline_s=statefileline.strip();
+                if statefileline_s == '' or statefileline_s[0] == '#':
+                    continue
+                statefilefields=statefileline_s.split(':');
+                if len(statefilefields) != 5:
+                    print("Error in statefile line %s, skipping. Bad line: %s"%(statefilelinecount,statefileline));
+                else:
+                    statefile_sysuid=statefilefields[0];
+                    try:
+                        statefile_firstalert=int(statefilefields[1]);
+                    except:
+                        print("Field 2 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                    try:
+                        statefile_lastalert=int(statefilefields[2]);
+                    except:
+                        print("Field 3 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                    try:
+                        statefile_alertcount=int(statefilefields[3]);
+                    except:
+                        print("Field 4 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                    try:
+                        statefile_violationtype=int(statefilefields[4]);
+                    except:
+                        print("Field 5 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+
+                    warnquotastate[statefile_sysuid]=[statefile_firstalert,statefile_lastalert,statefile_alertcount,statefile_violationtype];
+
 
         rqhandle=os.popen(config.repquotapathcmd+' '+config.warnquotafs[fs][0],'r');
         rq=rqhandle.read();
@@ -669,7 +692,8 @@ def checkquota(fs):
         # update state file
         if not simulation:
             fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_WRONLY+os.O_TRUNC,0o640);
-            os.write(fsstatehandle,bytes("warnquotastate=%s\n"%(warnquotastatenew),"utf-8"));
+            for stateuser in warnquotastatenew.keys():
+                os.write(fsstatehandle,bytes("%s:%s\n"%(stateuser,':'.join(map(str,warnquotastatenew[stateuser]))),"utf-8"));
             os.close(fsstatehandle);
 
 
@@ -683,7 +707,7 @@ if not os.path.isfile(configfile):
     sys.exit(1);
 
 try:
-# TODO: yes this is evil, should be fixed
+# this could be better, but maybe ok, if conffile is writable by root/trusted users only, which should be the case...
     exec(open(configfile).read());
 except:
     print("Something is wrong with this config file (syntax error?): %s!"%(configfile));
