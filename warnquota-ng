@@ -691,7 +691,7 @@ def checkquota(fs):
 
         # update state file
         if not simulation:
-            fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_WRONLY+os.O_TRUNC,0o640);
+            fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_CREAT+os.O_WRONLY+os.O_TRUNC,0o640);
             for stateuser in warnquotastatenew.keys():
                 os.write(fsstatehandle,bytes("%s:%s\n"%(stateuser,':'.join(map(str,warnquotastatenew[stateuser]))),"utf-8"));
             os.close(fsstatehandle);
