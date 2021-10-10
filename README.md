@@ -19,7 +19,7 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
  - can store user configuration in LDAP directory (using warnquota-ng.schema)
 
 ## Requirements
- - Python 3 (tested with 3.2)
+ - Python 3 (tested with 3.2/3.5, but newer should be just fine)
  - quota tools (repquota)
  - access to an SMTP server
  - cron
@@ -31,4 +31,4 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
  4. *Optional:*
     - Add warnquota-ng.schema to your LDAP server configuration
     - Add warnquota-ng attributes for your users in LDAP
-    - Uncomment the "warnquota-ng -L" command in the warnquota-ng cron configuration file
+    - Uncomment the "warnquota-ng -L" command in the warnquota-ng cron configuration file in /etc/cron.d/
