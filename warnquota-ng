@@ -11,10 +11,10 @@ import sys, os, shutil, time, datetime, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
-wqng_version="0.50";
-simulation=False;
-debuglevel=0;
-wqng_runmode='normal';
+wqng_version = "0.50";
+simulation = False;
+debuglevel = 0;
+wqng_runmode = 'normal';
 
 if len(sys.argv) > 1:
     if '-h' in sys.argv or '--help' in sys.argv:
@@ -27,152 +27,152 @@ Options:
 -d : increase debuglevel (also -v)""");
         sys.exit(0);
     if '-V' in sys.argv or '--version' in sys.argv:
-        print("warnquota-ng "+str(wqng_version));
+        print("warnquota-ng " + str(wqng_version));
         sys.exit(0);
     if '-n' in sys.argv:
-        simulation=True;
+        simulation = True;
     if '-L' in sys.argv:
-        wqng_runmode='ldapconfgen';
-    debuglevel=(sys.argv.count('-d')+sys.argv.count('-v'));
+        wqng_runmode = 'ldapconfgen';
+    debuglevel = (sys.argv.count('-d') + sys.argv.count('-v'));
 
 
-warnquotastate={};
+warnquotastate = {};
 
 class config:
     #init dictionaries
-    mailbody_overinode_user={};
-    mailbody_overinode_admin={};
-    mailbody_overblock_user={};
-    mailbody_overblock_admin={};
-    mailbody_signature={};
-    mailbody_overquota_overquota_user={};
-    mailbody_overquota_overquota_admin={};
-    mailbody_overquota_warning={};
-    mailbody_overquota_alertlimit_user={};
-    mailbody_overquota_alertlimit_admin={};
-    mailbody_overquota_footer_user={};
-    mailbody_overquota_footer_user1={};
-    mailbody_overquota_footer_user2={};
-    mailbody_overquota_footer_user3={};
-    mailbody_overquota_footer_admin={};
-    mailbody_overquota_footer_admin1={};
-    mailbody_overquota_footer_admin2={};
-    mailbody_overquota_footer_admin3={};
-    mailbody_overquota_userid={};
-    mailbody_overquota_gracetime={};
-    mailbody_overquota_gracedays={};
-    mailbody_overquota_alertlimit={};
-    mailbody_overquota_inodes={};
-    mailbody_quotaok_subj={};
-    mailbody_quotaok_user1={};
-    mailbody_quotaok_user2={};
-    mailbody_quotaok_admin1={};
-    mailbody_quotaok_admin2={};
-    mailfrom={};
-    support_contactmail_for_user={};
-    support_contactmail_for_admin={};
-    support_contactphone_for_user={};
-    support_contactphone_for_admin={};
+    mailbody_overinode_user = {};
+    mailbody_overinode_admin = {};
+    mailbody_overblock_user = {};
+    mailbody_overblock_admin = {};
+    mailbody_signature = {};
+    mailbody_overquota_overquota_user = {};
+    mailbody_overquota_overquota_admin = {};
+    mailbody_overquota_warning = {};
+    mailbody_overquota_alertlimit_user = {};
+    mailbody_overquota_alertlimit_admin = {};
+    mailbody_overquota_footer_user = {};
+    mailbody_overquota_footer_user1 = {};
+    mailbody_overquota_footer_user2 = {};
+    mailbody_overquota_footer_user3 = {};
+    mailbody_overquota_footer_admin = {};
+    mailbody_overquota_footer_admin1 = {};
+    mailbody_overquota_footer_admin2 = {};
+    mailbody_overquota_footer_admin3 = {};
+    mailbody_overquota_userid = {};
+    mailbody_overquota_gracetime = {};
+    mailbody_overquota_gracedays = {};
+    mailbody_overquota_alertlimit = {};
+    mailbody_overquota_inodes = {};
+    mailbody_quotaok_subj = {};
+    mailbody_quotaok_user1 = {};
+    mailbody_quotaok_user2 = {};
+    mailbody_quotaok_admin1 = {};
+    mailbody_quotaok_admin2 = {};
+    mailfrom = {};
+    support_contactmail_for_user = {};
+    support_contactmail_for_admin = {};
+    support_contactphone_for_user = {};
+    support_contactphone_for_admin = {};
 
-    supportedlanguages=["hu","en"];
-    configfiledir="/etc/warnquota-ng";
-    configbackuppath="/var/backups/";
-    hostname='';
+    supportedlanguages = ["hu", "en"];
+    configfiledir = "/etc/warnquota-ng";
+    configbackuppath = "/var/backups/";
+    hostname = '';
 
     # defaults
-    repquotapathcmd='/usr/sbin/repquota';
+    repquotapathcmd = '/usr/sbin/repquota';
     # this needs to be on permanent storage (so /var/run, /tmp ... won't do)
-    warnquotastatedir='/var/lib/warnquota-ng';
-    croninterval=300; # 5 mins
-    alertintervals=[7200,43200,86400,259200,604800]; # reminders will be sent after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
-    warnquotafs={ "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'Email storage space'} ],
-                  "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"} ]
-                };
+    warnquotastatedir = '/var/lib/warnquota-ng';
+    croninterval = 300; # 5 mins
+    alertintervals = [7200, 43200, 86400, 259200, 604800]; # reminders will be sent after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
+    warnquotafs = { "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'Email storage space'} ],
+                    "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"} ]
+                  };
 
     # default SMTP settings
-    smtphost="localhost";
-    smtpport=25;
-    smtpssl=False;
-    smtpstarttls=False;
-    smtpauth=False;
-    smtpauth_username='';
-    smtpauth_password='';
+    smtphost = "localhost";
+    smtpport = 25;
+    smtpssl = False;
+    smtpstarttls = False;
+    smtpauth = False;
+    smtpauth_username = '';
+    smtpauth_password = '';
 
     # LDAP settings
-    ldapsearchbinpath="/usr/bin/ldapsearch";
-    mainldapfilter="objectClass=warnquotang";
-    ldap_fsconf_perm=0o640;
+    ldapsearchbinpath = "/usr/bin/ldapsearch";
+    mainldapfilter = "objectClass=warnquotang";
+    ldap_fsconf_perm = 0o640;
 
-    knownusersonly=False;
-    defaultlang="en";
-    defaultsendinodetouser=False;
-    hostname='';
-    defaultadminmailto='';
-    inodealertoverridemailto='';
-    mailfrom['hu']='';
-    mailfrom['en']='';
-    mailbody_signature['hu']='';
-    mailbody_signature['en']='';
-    support_contactmail_for_user['hu']='';
-    support_contactmail_for_user['en']='';
-    support_contactmail_for_admin['hu']='';
-    support_contactmail_for_admin['en']='';
-    support_contactphone_for_user['hu']='';
-    support_contactphone_for_user['en']='';
-    support_contactphone_for_admin['hu']='';
-    support_contactphone_for_admin['en']='';
+    knownusersonly = False;
+    defaultlang = "en";
+    defaultsendinodetouser = False;
+    hostname = '';
+    defaultadminmailto = '';
+    inodealertoverridemailto = '';
+    mailfrom['hu'] = '';
+    mailfrom['en'] = '';
+    mailbody_signature['hu'] = '';
+    mailbody_signature['en'] = '';
+    support_contactmail_for_user['hu'] = '';
+    support_contactmail_for_user['en'] = '';
+    support_contactmail_for_admin['hu'] = '';
+    support_contactmail_for_admin['en'] = '';
+    support_contactphone_for_user['hu'] = '';
+    support_contactphone_for_user['en'] = '';
+    support_contactphone_for_admin['hu'] = '';
+    support_contactphone_for_admin['en'] = '';
 
     # translations here
-    mailbody_overinode_user['hu']='Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhely maximális méretét.\n';
-    mailbody_overinode_user['en']='Dear Customer,\n\nYou have received this automated message, because you have reached your storage space limit allowed by your subscription.\n';
-    mailbody_overinode_admin['hu']='Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhely maximális méretét.\n';
-    mailbody_overinode_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the maximum allowed storage space.\n';
-    mailbody_overquota_overquota_user['hu']='Quota túllépés';
-    mailbody_overquota_overquota_user['en']='Quota exceeded';
-    mailbody_overquota_warning['hu']='figyelmeztetés';
-    mailbody_overquota_warning['en']='warning';
-    mailbody_overquota_overquota_admin['hu']='túllépte a quota-ját';
-    mailbody_overquota_overquota_admin['en']='exceeded the quota';
-    mailbody_overquota_alertlimit_user['hu']='Quota figyelmeztetés'
-    mailbody_overquota_alertlimit_user['en']='Quota warning';
-    mailbody_overquota_alertlimit_admin['hu']='Elérte a quota figyelmeztetője határát'
-    mailbody_overquota_alertlimit_admin['en']='Has reached the quota warning limit';
-    mailbody_overblock_user['hu']='Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhelyhez beállított figyelmeztetési határt.\n';
-    mailbody_overblock_user['en']='Dear Customer,\n\nYou have received this automated message, because you have reached your alert limit for storage space usage.\n';
-    mailbody_overblock_admin['hu']='Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhelyehez beállított figyelmeztetési határt.\n';
-    mailbody_overblock_admin['en']='Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the alert limit for storage space usage.\n';
-    mailbody_overquota_footer_user1['hu']='\nAmennyiben nem érti, úgy nézze meg az ügyfélkapun belül a quota adatokat, vagy kérje munkatársunk segítségét!\n\nKérjük töröljön néhány fájlt/levelet, hogy helyet szabadítson fel, vagy vásároljon plusz tárhelyet!\n\nProbléma esetén vegye fel munkatársunkkal a kapcsolatot e-mail-ben: ';
-    mailbody_overquota_footer_user2['hu']=' vagy telefonon: ';
-    mailbody_overquota_footer_user3['hu']='.';
-    mailbody_overquota_footer_user1['en']='\nPlease delete some of your e-mails/files in order to free up disk space, or you can request more disk space.\n\nYou can check the quota stats on our website.\n\nIf you need assistance, contact us via e-mail: ';
-    mailbody_overquota_footer_user2['en']=' , or by phone: ';
-    mailbody_overquota_footer_user3['en']='.';
-    mailbody_overquota_footer_admin1['hu']='\nAmennyiben nem érti, úgy nézze meg az ügyfélkapun belül a quota adatokat, vagy kérje munkatársunk segítségét!\n\nKérjük töröljön néhány fájlt/levelet, hogy helyet szabadítson fel, vagy vásároljon plusz tárhelyet!\n\nProbléma esetén vegye fel munkatársunkkal a kapcsolatot e-mail-ben: '
-    mailbody_overquota_footer_admin2['hu']=' vagy telefonon: ';
-    mailbody_overquota_footer_admin3['hu']='.';
-    mailbody_overquota_footer_admin1['en']='\nPlease delete some of your e-mails/files in order to free up disk space, or you can request more disk space.\n\nYou can check the quota stats on our website.\n\nIf you need assistance, contact us via e-mail: ';
-    mailbody_overquota_footer_admin2['en']=' , or by phone: ';
-    mailbody_overquota_footer_admin3['en']='.';
-    mailbody_overquota_userid['hu']='Felhasználó azonosítója';
-    mailbody_overquota_userid['en']='User ID';
-    mailbody_overquota_gracetime['hu']='Türelmi idő';
-    mailbody_overquota_gracetime['en']='Grace time';
-    mailbody_overquota_gracedays['hu']='nap';
-    mailbody_overquota_gracedays['en']='day(s)';
-    mailbody_overquota_alertlimit['hu']='Értesítési határ';
-    mailbody_overquota_alertlimit['en']='Alert limit';
-    mailbody_overquota_inodes['hu']='en lévő fájlok és directoryk (inode-ok) száma';
-    mailbody_overquota_inodes['en']=': number of inodes (files and directories)';
-    mailbody_quotaok_subj['hu']='Quota rendezve';
-    mailbody_quotaok_subj['en']='Quota is OK';
-    mailbody_quotaok_user1['hu']='Tisztelt Ügyfelünk!\n\nKöszönjük, hogy rendezte kvóta túllépését!';
-    mailbody_quotaok_user2['hu']='';
-    mailbody_quotaok_user1['en']='Dear Customer,\n\nYour account is back under quota. Thank you for your cooperation!';
-    mailbody_quotaok_user2['en']='';
-    mailbody_quotaok_admin1['hu']='Tisztelt Adminisztrátor!\n\nÜgyfele';
-    mailbody_quotaok_admin2['hu']='rendezte kvóta túllépését!';
-    mailbody_quotaok_admin1['en']='Dear Administrator,\n\nYour customer';
-    mailbody_quotaok_admin2['en']='is below quota again!';
+    mailbody_overinode_user['hu'] = 'Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhely maximális méretét.\n';
+    mailbody_overinode_user['en'] = 'Dear Customer,\n\nYou have received this automated message, because you have reached your storage space limit allowed by your subscription.\n';
+    mailbody_overinode_admin['hu'] = 'Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhely maximális méretét.\n';
+    mailbody_overinode_admin['en'] = 'Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the maximum allowed storage space.\n';
+    mailbody_overquota_overquota_user['hu'] = 'Quota túllépés';
+    mailbody_overquota_overquota_user['en'] = 'Quota exceeded';
+    mailbody_overquota_warning['hu'] = 'figyelmeztetés';
+    mailbody_overquota_warning['en'] = 'warning';
+    mailbody_overquota_overquota_admin['hu'] = 'túllépte a quota-ját';
+    mailbody_overquota_overquota_admin['en'] = 'exceeded the quota';
+    mailbody_overquota_alertlimit_user['hu'] = 'Quota figyelmeztetés'
+    mailbody_overquota_alertlimit_user['en'] = 'Quota warning';
+    mailbody_overquota_alertlimit_admin['hu'] = 'Elérte a quota figyelmeztetője határát'
+    mailbody_overquota_alertlimit_admin['en'] = 'Has reached the quota warning limit';
+    mailbody_overblock_user['hu'] = 'Tisztelt Ügyfelünk!\n\nEz egy automatikusan generált levél és azért kapta, mert elérte az előfizetése által felhasználható tárhelyhez beállított figyelmeztetési határt.\n';
+    mailbody_overblock_user['en'] = 'Dear Customer,\n\nYou have received this automated message, because you have reached your alert limit for storage space usage.\n';
+    mailbody_overblock_admin['hu'] = 'Tisztelt Adminisztrátor!\n\nEz egy automatikusan generált levél és azért kapta, mert egy felhasználója elérte az általa felhasználható tárhelyehez beállított figyelmeztetési határt.\n';
+    mailbody_overblock_admin['en'] = 'Dear Administrator,\n\nYou have received this automated message, because one of your customers have reached the alert limit for storage space usage.\n';
+    mailbody_overquota_footer_user1['hu'] = '\nAmennyiben nem érti, úgy nézze meg az ügyfélkapun belül a quota adatokat, vagy kérje munkatársunk segítségét!\n\nKérjük töröljön néhány fájlt/levelet, hogy helyet szabadítson fel, vagy vásároljon plusz tárhelyet!\n\nProbléma esetén vegye fel munkatársunkkal a kapcsolatot e-mail-ben: ';
+    mailbody_overquota_footer_user2['hu'] = ' vagy telefonon: ';
+    mailbody_overquota_footer_user3['hu'] = '.';
+    mailbody_overquota_footer_user1['en'] = '\nPlease delete some of your e-mails/files in order to free up disk space, or you can request more disk space.\n\nYou can check the quota stats on our website.\n\nIf you need assistance, contact us via e-mail: ';
+    mailbody_overquota_footer_user2['en'] = ' , or by phone: ';
+    mailbody_overquota_footer_user3['en'] = '.';
+    mailbody_overquota_footer_admin1['hu'] = '\nAmennyiben nem érti, úgy nézze meg az ügyfélkapun belül a quota adatokat, vagy kérje munkatársunk segítségét!\n\nKérjük töröljön néhány fájlt/levelet, hogy helyet szabadítson fel, vagy vásároljon plusz tárhelyet!\n\nProbléma esetén vegye fel munkatársunkkal a kapcsolatot e-mail-ben: '
+    mailbody_overquota_footer_admin2['hu'] = ' vagy telefonon: ';
+    mailbody_overquota_footer_admin3['hu'] = '.';
+    mailbody_overquota_footer_admin1['en'] = '\nPlease delete some of your e-mails/files in order to free up disk space, or you can request more disk space.\n\nYou can check the quota stats on our website.\n\nIf you need assistance, contact us via e-mail: ';
+    mailbody_overquota_footer_admin2['en'] = ' , or by phone: ';
+    mailbody_overquota_footer_admin3['en'] = '.';
+    mailbody_overquota_userid['hu'] = 'Felhasználó azonosítója';
+    mailbody_overquota_userid['en'] = 'User ID';
+    mailbody_overquota_gracetime['hu'] = 'Türelmi idő';
+    mailbody_overquota_gracetime['en'] = 'Grace time';
+    mailbody_overquota_gracedays['hu'] = 'nap';
+    mailbody_overquota_gracedays['en'] = 'day(s)';
+    mailbody_overquota_alertlimit['hu'] = 'Értesítési határ';
+    mailbody_overquota_alertlimit['en'] = 'Alert limit';
+    mailbody_overquota_inodes['hu'] = 'en lévő fájlok és directoryk (inode-ok) száma';
+    mailbody_overquota_inodes['en'] = ': number of inodes (files and directories)';
+    mailbody_quotaok_subj['hu'] = 'Quota rendezve';
+    mailbody_quotaok_subj['en'] = 'Quota is OK';
+    mailbody_quotaok_user1['hu'] = 'Tisztelt Ügyfelünk!\n\nKöszönjük, hogy rendezte kvóta túllépését!';
+    mailbody_quotaok_user2['hu'] = '';
+    mailbody_quotaok_user1['en'] = 'Dear Customer,\n\nYour account is back under quota. Thank you for your cooperation!';
+    mailbody_quotaok_user2['en'] = '';
+    mailbody_quotaok_admin1['hu'] = 'Tisztelt Adminisztrátor!\n\nÜgyfele';
+    mailbody_quotaok_admin2['hu'] = 'rendezte kvóta túllépését!';
+    mailbody_quotaok_admin1['en'] = 'Dear Administrator,\n\nYour customer';
+    mailbody_quotaok_admin2['en'] = 'is below quota again!';
 
 
 def wqng_ldap_genconfig(user_ldapfilter):
@@ -182,20 +182,20 @@ def wqng_ldap_genconfig(user_ldapfilter):
             print("Syntax error in user_ldapfilter, parentheses are not paired: %s"%(user_ldapfilter))
             sys.exit(1);
         if (user_ldapfilter[0] == '(' and user_ldapfilter[-1] == ')'):
-            user_ldapfilter=user_ldapfilter[1:-1];
+            user_ldapfilter = user_ldapfilter[1:-1];
         if '=' not in user_ldapfilter:
             print("Syntax error in user_ldapfilter, no = found: %s"%(user_ldapfilter))
             sys.exit(1);
-        ldapfilter="(&(%s)(%s))"%(config.mainldapfilter,user_ldapfilter)
+        ldapfilter = "(&(%s)(%s))"%(config.mainldapfilter, user_ldapfilter)
     else:
-        ldapfilter="(%s)"%(config.mainldapfilter);
+        ldapfilter = "(%s)"%(config.mainldapfilter);
 
-    if debuglevel>0:
+    if debuglevel > 0:
         print("Using ldap_filter: %s\n"%(ldapfilter));
 
-    lshandle=os.popen(config.ldapsearchbinpath+""" -x -LLL '%s' cn warnquotangUserEmail warnquotangAdminEmail warnquotangWarnPercentBlocks warnquotangWarnPercentInodes warnquotangWarnAdmin warnquotangAlertAdmin warnquotangAlertWarnUserInodes warnquotangMailLanguage"""%(ldapfilter),'r');
-    ls=lshandle.read();
-    exitval=lshandle.close();
+    lshandle = os.popen(config.ldapsearchbinpath + """ -x -LLL '%s' cn warnquotangUserEmail warnquotangAdminEmail warnquotangWarnPercentBlocks warnquotangWarnPercentInodes warnquotangWarnAdmin warnquotangAlertAdmin warnquotangAlertWarnUserInodes warnquotangMailLanguage"""%(ldapfilter), 'r');
+    ls = lshandle.read();
+    exitval = lshandle.close();
 
     if exitval != None:
         print('Something is wrong with ldapsearch (filter problem?): %d'%(exitval));
@@ -206,71 +206,71 @@ def wqng_ldap_genconfig(user_ldapfilter):
             print("Empty result from ldapsearch.");
         sys.exit(0);
 
-    userdata={};
-    users={};
-    user='';
+    userdata = {};
+    users = {};
+    user = '';
 
-    for i in ls.split('\n'):
-        if i=='': continue
-        i=i.split(':');
-        if i[0]=='dn':
+    for lsline in ls.split('\n'):
+        if lsline == '': continue
+        lslinefields = lsline.split(':');
+        if lslinefields[0] == 'dn':
             if user != '':
-                users[user]=userdata;
-            userdata={};
-            user=i[1][1:].split("=")[1].split(',')[0];
+                users[user] = userdata;
+            userdata = {};
+            user = lslinefields[1][1:].split("=")[1].split(',')[0];
             continue
-        userdata[i[0]]=i[1][1:];
-    users[user]=userdata;
+        userdata[lslinefields[0]] = lslinefields[1][1:];
+    users[user] = userdata;
 
-    wqng_config_text='';
-    for i in users.keys():
-        if debuglevel>1:
+    wqng_config_text = '';
+    for usernamekey in users.keys():
+        if debuglevel > 1:
             print("%s:%s:%s:%s:%s:%s:%s:%s:%s:%s"%(
-                i,users[i]['cn'],
-                users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
-                users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
-                users[i]['warnquotangWarnAdmin'].replace('1','yes').replace('0','no'),
-                users[i]['warnquotangAlertAdmin'].replace('1','yes').replace('0','no'),
-                users[i]['warnquotangAlertWarnUserInodes'].replace('1','yes').replace('0','no'),
-                users[i]['warnquotangMailLanguage']));
+                usernamekey, users[usernamekey]['cn'],
+                users[usernamekey]['warnquotangUserEmail'], users[usernamekey]['warnquotangAdminEmail'],
+                users[usernamekey]['warnquotangWarnPercentBlocks'], users[usernamekey]['warnquotangWarnPercentInodes'],
+                users[usernamekey]['warnquotangWarnAdmin'].replace('1', 'yes').replace('0', 'no'),
+                users[usernamekey]['warnquotangAlertAdmin'].replace('1', 'yes').replace('0', 'no'),
+                users[usernamekey]['warnquotangAlertWarnUserInodes'].replace('1', 'yes').replace('0', 'no'),
+                users[usernamekey]['warnquotangMailLanguage']));
 
-        wqng_config_text+="%s:%s:%s:%s:%s:%s:%s:%s:%s:%s\n"%(
-            i,users[i]['cn'],
-            users[i]['warnquotangUserEmail'],users[i]['warnquotangAdminEmail'],
-            users[i]['warnquotangWarnPercentBlocks'],users[i]['warnquotangWarnPercentInodes'],
-            users[i]['warnquotangWarnAdmin'].replace('1','yes').replace('0','no'),
-            users[i]['warnquotangAlertAdmin'].replace('1','yes').replace('0','no'),
-            users[i]['warnquotangAlertWarnUserInodes'].replace('1','yes').replace('0','no'),
-            users[i]['warnquotangMailLanguage']);
+        wqng_config_text += "%s:%s:%s:%s:%s:%s:%s:%s:%s:%s\n"%(
+            usernamekey, users[usernamekey]['cn'],
+            users[usernamekey]['warnquotangUserEmail'], users[usernamekey]['warnquotangAdminEmail'],
+            users[usernamekey]['warnquotangWarnPercentBlocks'], users[usernamekey]['warnquotangWarnPercentInodes'],
+            users[usernamekey]['warnquotangWarnAdmin'].replace('1', 'yes').replace('0', 'no'),
+            users[usernamekey]['warnquotangAlertAdmin'].replace('1', 'yes').replace('0', 'no'),
+            users[usernamekey]['warnquotangAlertWarnUserInodes'].replace('1', 'yes').replace('0', 'no'),
+            users[usernamekey]['warnquotangMailLanguage']);
 
     return wqng_config_text
 
 
-def wqng_sendmail(fromaddr,fromname,toaddr,subject,mailtext):
+def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
 
         if simulation:
             if debuglevel > 0:
-                print("Simulation - no mail was sent:\n From: %s <%s>, To: %s, Subject: %s, Body: %s"%(fromname,fromaddr,toaddr,subject,text));
+                print("Simulation - no mail was sent:\n From: %s <%s>, To: %s, Subject: %s, Body: %s"%(fromname, fromaddr, toaddr, subject, text));
             else:
                 print("Simulation - no mail was sent");
             return 0;
         else:
-            msg=MIMEText(mailtext, "plain", "utf-8");
+            msg = MIMEText(mailtext, "plain", "utf-8");
             msg.set_charset("utf-8");
-            msg['Subject']=subject;
-            msg['From']=email.header.Header(fromname,"utf-8").encode()+" <"+fromaddr+">";
-            msg['To']=toaddr;
+            msg['Subject'] = subject;
+            msg['From'] = email.header.Header(fromname, "utf-8").encode() + " <" + fromaddr + ">";
+            msg['To'] = toaddr;
 
             if config.smtpssl:
-                smtpconn=smtplib.SMTP_SSL(config.smtphost, config.smtpport);
+                smtpconn = smtplib.SMTP_SSL(config.smtphost, config.smtpport);
             else:
-                smtpconn=smtplib.SMTP(config.smtphost, config.smtpport);
+                smtpconn = smtplib.SMTP(config.smtphost, config.smtpport);
                 if config.smtpstarttls:
                     smtpconn.starttls();
 
             if config.smtpauth:
                 try:
-                    smtpconn.login(config.smtpauth_username,config.smtpauth_password);
+                    smtpconn.login(config.smtpauth_username, config.smtpauth_password);
                 except:
                     print("SMTP AUTH error."); # but we can still try to send...
 
@@ -285,200 +285,200 @@ def wqng_sendmail(fromaddr,fromname,toaddr,subject,mailtext):
 
 def checkquota(fs):
 
-        config.warnquotauser={};
+        config.warnquotauser = {};
 
-        fsconflockfilepath=config.configfiledir+"/warnquota-ng.fs."+fs+".conf.lock";
+        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf.lock";
         if os.path.isfile(fsconflockfilepath):
-            print("Lock file exist: %s, skipping filesystem: %s"%(fsconflockfilepath,fs));
+            print("Lock file exist: %s, skipping filesystem: %s"%(fsconflockfilepath, fs));
             return
 
-        fsconffilepath=config.configfiledir+"/warnquota-ng.fs."+fs+".conf";
+        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf";
         if os.path.isfile(fsconffilepath):
             try:
-                fsconflines=open(fsconffilepath).readlines();
+                fsconflines = open(fsconffilepath).readlines();
             except:
                 print("Something went wrong while reading this config file (syntax error?): %s!"%(fsconffilepath));
                 sys.exit(1);
 
-            fsconflinecount=0;
+            fsconflinecount = 0;
             for fsconfline in fsconflines:
-                fsconflinecount+=1;
-                fsconfline_s=fsconfline.strip();
+                fsconflinecount += 1;
+                fsconfline_s = fsconfline.strip();
                 if fsconfline_s == '' or fsconfline_s[0] == '#':
                     continue
-                fsconffields=fsconfline_s.split(':');
+                fsconffields = fsconfline_s.split(':');
                 if len(fsconffields) != 10:
-                    print("Error in fsconfig file line %s, skipping. Bad line: %s"%(fsconflinecount,fsconfline));
+                    print("Error in fsconfig file line %s, skipping. Bad line: %s"%(fsconflinecount, fsconfline));
                 else:
-                    fscfg_sysuid=fsconffields[0];
-                    fscfg_uid=fsconffields[1];
-                    fscfg_useremail=fsconffields[2];
-                    fscfg_adminemail=fsconffields[3];
+                    fscfg_sysuid = fsconffields[0];
+                    fscfg_uid = fsconffields[1];
+                    fscfg_useremail = fsconffields[2];
+                    fscfg_adminemail = fsconffields[3];
                     try:
-                        fscfg_blockpercent=int(fsconffields[4]);
+                        fscfg_blockpercent = int(fsconffields[4]);
                     except:
-                        print("Field 5 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount,fsconfline));
-                        fscfg_blockpercent=0;
+                        print("Field 5 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount, fsconfline));
+                        fscfg_blockpercent = 0;
                     try:
-                        fscfg_inodepercent=int(fsconffields[5]);
+                        fscfg_inodepercent = int(fsconffields[5]);
                     except:
-                        print("Field 6 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount,fsconfline));
-                        fscfg_inodepercent=0;
-                    fscfg_notifyadminpercentage=fsconffields[6] in ["True","true","1","On","on","Yes","yes"];
-                    fscfg_notifyadmin=fsconffields[7] in ["True","true","1","On","on","Yes","yes"];
-                    fscfg_notifyuserinode=fsconffields[8] in ["True","true","1","On","on","Yes","yes"];
-                    if fsconffields[9] in ["en","hu"]:
-                        fscfg_lang=fsconffields[9];
+                        print("Field 6 should be an integer in fsconfig file line %s, skipping (value set to 0). Bad line: %s"%(fsconflinecount, fsconfline));
+                        fscfg_inodepercent = 0;
+                    fscfg_notifyadminpercentage = fsconffields[6] in ["True", "true", "1", "On", "on", "Yes", "yes"];
+                    fscfg_notifyadmin = fsconffields[7] in ["True", "true", "1", "On", "on", "Yes", "yes"];
+                    fscfg_notifyuserinode = fsconffields[8] in ["True", "true", "1", "On", "on", "Yes", "yes"];
+                    if fsconffields[9] in ["en", "hu"]:
+                        fscfg_lang = fsconffields[9];
                     else:
-                        print("Unsupported language setting in fsconfig file line %s, skipping (value set 'en'). Bad line: %s"%(fsconflinecount,fsconfline));
-                        fscfg_lang="en";
-                    config.warnquotauser[fscfg_sysuid]=[fscfg_uid,fscfg_useremail,fscfg_adminemail,fscfg_blockpercent,fscfg_inodepercent,fscfg_notifyadminpercentage,fscfg_notifyadmin,fscfg_notifyuserinode,fscfg_lang];
+                        print("Unsupported language setting in fsconfig file line %s, skipping (value set 'en'). Bad line: %s"%(fsconflinecount, fsconfline));
+                        fscfg_lang = "en";
+                    config.warnquotauser[fscfg_sysuid] = [fscfg_uid, fscfg_useremail, fscfg_adminemail, fscfg_blockpercent, fscfg_inodepercent, fscfg_notifyadminpercentage, fscfg_notifyadmin, fscfg_notifyuserinode, fscfg_lang];
 
-        warnquotastatenew={};
-        warnquotastate={};
+        warnquotastatenew = {};
+        warnquotastate = {};
 
-        statefilepath=config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state";
+        statefilepath = config.warnquotastatedir + "/warnquota-ng.fs." + fs + ".state";
         if os.path.isfile(statefilepath):
 
             try:
-                statefilelines=open(statefilepath).readlines();
+                statefilelines = open(statefilepath).readlines();
             except:
                 print("Cannot read this statefile: %s!"%(statefilepath));
                 sys.exit(1);
 
-            statefilelinecount=0;
+            statefilelinecount = 0;
             for statefileline in statefilelines:
-                statefilelinecount+=1;
-                statefileline_s=statefileline.strip();
+                statefilelinecount += 1;
+                statefileline_s = statefileline.strip();
                 if statefileline_s == '' or statefileline_s[0] == '#':
                     continue
-                statefilefields=statefileline_s.split(':');
+                statefilefields = statefileline_s.split(':');
                 if len(statefilefields) != 5:
-                    print("Error in statefile line %s, skipping. Bad line: %s"%(statefilelinecount,statefileline));
+                    print("Error in statefile line %s, skipping. Bad line: %s"%(statefilelinecount, statefileline));
                 else:
-                    statefile_sysuid=statefilefields[0];
+                    statefile_sysuid = statefilefields[0];
                     try:
-                        statefile_firstalert=int(statefilefields[1]);
+                        statefile_firstalert = int(statefilefields[1]);
                     except:
-                        print("Field 2 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                        print("Field 2 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount, statefileline));
                     try:
-                        statefile_lastalert=int(statefilefields[2]);
+                        statefile_lastalert = int(statefilefields[2]);
                     except:
-                        print("Field 3 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                        print("Field 3 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount, statefileline));
                     try:
-                        statefile_alertcount=int(statefilefields[3]);
+                        statefile_alertcount = int(statefilefields[3]);
                     except:
-                        print("Field 4 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                        print("Field 4 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount, statefileline));
                     try:
-                        statefile_violationtype=int(statefilefields[4]);
+                        statefile_violationtype = int(statefilefields[4]);
                     except:
-                        print("Field 5 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount,statefileline));
+                        print("Field 5 should be an integer in statefileig file line %s, skipping (value set to 0). Bad line: %s"%(statefilelinecount, statefileline));
 
-                    warnquotastate[statefile_sysuid]=[statefile_firstalert,statefile_lastalert,statefile_alertcount,statefile_violationtype];
+                    warnquotastate[statefile_sysuid] = [statefile_firstalert, statefile_lastalert, statefile_alertcount, statefile_violationtype];
 
 
-        rqhandle=os.popen(config.repquotapathcmd+' '+config.warnquotafs[fs][0],'r');
-        rq=rqhandle.read();
-        exitval=rqhandle.close();
+        rqhandle = os.popen(config.repquotapathcmd + ' ' + config.warnquotafs[fs][0], 'r');
+        rq = rqhandle.read();
+        exitval = rqhandle.close();
         if exitval != None:
-            print('Something is wrong with repquota: '+str(exitval));
+            print('Something is wrong with repquota: ' + str(exitval));
             sys.exit(2);
 
-        overblock=False;
-        overinode=False;
-        alertblock=False;
-        alertinode=False;
-        overadminalert=False;
-        alertadminalert=False;
-        sendquotamail=False;
+        overblock = False;
+        overinode = False;
+        alertblock = False;
+        alertinode = False;
+        overadminalert = False;
+        alertadminalert = False;
+        sendquotamail = False;
 
         # mainloop
-        for i in rq.split('\n')[5:]:
-                if i == '':
+        for rqline in rq.split('\n')[5:]:
+                if rqline == '':
                     continue
-                rqfields=i.split();
-                username=rqfields[0];
+                rqfields = rqline.split();
+                username = rqfields[0];
 
                 # has an associated config entry
                 if (username in config.warnquotauser.keys()):
-                    useridentifier=config.warnquotauser[username][0];
-                    alertblockpercent=config.warnquotauser[username][3];
+                    useridentifier = config.warnquotauser[username][0];
+                    alertblockpercent = config.warnquotauser[username][3];
                     try:
-                        alertinodepercent=float(config.warnquotauser[username][4]);
+                        alertinodepercent = float(config.warnquotauser[username][4]);
                     except:
-                        alertinodepercent=0.0;
+                        alertinodepercent = 0.0;
                         print('Error in config: %s username: %s alertinodepercent: %s'%(fsconffilepath, username, config.warnquotauser[username][4]));
-                    alertadminalert=config.warnquotauser[username][5];
+                    alertadminalert = config.warnquotauser[username][5];
                     if alertadminalert != True and alertadminalert != False:
-                        alertadminalert=True;
-                    overadminalert=config.warnquotauser[username][6];
+                        alertadminalert = True;
+                    overadminalert = config.warnquotauser[username][6];
                     if overadminalert != True and overadminalert != False:
-                        overadminalert=True;
-                    sendinodetouser=config.warnquotauser[username][7];
+                        overadminalert = True;
+                    sendinodetouser = config.warnquotauser[username][7];
                     if sendinodetouser != True and sendinodetouser != False:
-                        sendinodetouser=True;
-                    maillang=config.warnquotauser[username][8];
+                        sendinodetouser = True;
+                    maillang = config.warnquotauser[username][8];
                     if maillang not in config.supportedlanguages:
-                        maillang=config.defaultlang;
+                        maillang = config.defaultlang;
                 else: # user does not have an entry in the configuration file
                     if config.knownusersonly:
                         continue
-                    useridentifier=username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
-                    alertblockpercent=0;
-                    alertinodepercent=0;
-                    alertadminalert=True;
-                    overadminalert=True;
-                    sendinodetouser=config.defaultsendinodetouser;
-                    alertblock=False;
-                    alertinode=False;
-                    maillang=config.defaultlang;
+                    useridentifier = username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
+                    alertblockpercent = 0;
+                    alertinodepercent = 0;
+                    alertadminalert = True;
+                    overadminalert = True;
+                    sendinodetouser = config.defaultsendinodetouser;
+                    alertblock = False;
+                    alertinode = False;
+                    maillang = config.defaultlang;
 
-                blocknum=float(rqfields[2]);
-                blocklim=float(rqfields[3]);
+                blocknum = float(rqfields[2]);
+                blocklim = float(rqfields[3]);
                 if debuglevel > 2:
                     print("repquota fields: ", rqfields);
 
                 # at least the block limit has been reached
                 if rqfields[1][0] == '+':
-                    overblock=True;
-                    graceblock=rqfields[5][0];
+                    overblock = True;
+                    graceblock = rqfields[5][0];
                     if graceblock == "n":
-                        graceblock=0;
+                        graceblock = 0;
                     else:
                         try:
-                            graceblock=int(graceblock);
+                            graceblock = int(graceblock);
                         except:
-                            graceblock=0;
+                            graceblock = 0;
 
                 if overblock:
-                    inodenum=float(rqfields[6]);
-                    inodelim=float(rqfields[7]);
+                    inodenum = float(rqfields[6]);
+                    inodelim = float(rqfields[7]);
                 else:
-                    inodenum=float(rqfields[5]);
-                    inodelim=float(rqfields[6]);
+                    inodenum = float(rqfields[5]);
+                    inodelim = float(rqfields[6]);
 
                 # if inode is over limit
                 if rqfields[1][1] == '+':
-                    overinode=True;
+                    overinode = True;
                     # if both are over limit
                     if rqfields[1] == '++':
-                        graceinode=rqfields[9][0];
+                        graceinode = rqfields[9][0];
                     else: # '-+' - only inode count is over limit
-                        graceinode=rqfields[8][0];
+                        graceinode = rqfields[8][0];
 
                     if graceinode == "n":
-                        graceinode=0;
+                        graceinode = 0;
                     else:
                         try:
-                            graceinode=int(graceinode);
+                            graceinode = int(graceinode);
                         except:
-                            graceinode=0;
+                            graceinode = 0;
 
                 # alert percentage has been reached
-                if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= alertblockpercent/100.0):
-                    alertblock=True;
-                if (alertinodepercent != 0.0) and ((inodenum / inodelim) >= alertinodepercent/100.0):
-                    alertinode=True;
+                if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= (alertblockpercent / 100.0)):
+                    alertblock = True;
+                if (alertinodepercent != 0.0) and ((inodenum / inodelim) >= (alertinodepercent / 100.0)):
+                    alertinode = True;
 
                 if debuglevel > 2:
                     print("Alertadminalert: %s Overadminalert: %s Sendinodetouser: %s"%(alertadminalert, overadminalert, sendinodetouser));
@@ -487,211 +487,211 @@ def checkquota(fs):
                 # evaluation and construction of mail
                 if overblock or overinode or alertblock or alertinode:
 
-                    sendquotamail=False;
-                    sendquotaadminmail=False;
-                    sendquotausermail=False;
-                    intervalhit=False;
+                    sendquotamail = False;
+                    sendquotaadminmail = False;
+                    sendquotausermail = False;
+                    intervalhit = False;
 
-                    violationtype=int(overblock)*1000+int(overinode)*100+int(alertblock)*10+int(alertinode);
+                    violationtype = int(overblock) * 1000 + int(overinode) * 100 + int(alertblock) * 10 + int(alertinode);
 
                     # sendmail can take some time so we need to recheck time in every iteration to be accurate
-                    timenow_epoch=int(time.mktime(datetime.datetime.now().timetuple()));
+                    timenow_epoch = int(time.mktime(datetime.datetime.now().timetuple()));
 
                     # a new user could have appeared, so check again
                     if username in warnquotastate.keys():
-                        firstalert=warnquotastate[username][0];
-                        lastalert=warnquotastate[username][1];
-                        alertcount=warnquotastate[username][2];
-                        oldviolationtype=warnquotastate[username][3];
+                        firstalert = warnquotastate[username][0];
+                        lastalert = warnquotastate[username][1];
+                        alertcount = warnquotastate[username][2];
+                        oldviolationtype = warnquotastate[username][3];
                     else:
-                        firstalert=timenow_epoch;
-                        lastalert=timenow_epoch;
-                        alertcount=1;
-                        oldviolationtype="";
+                        firstalert = timenow_epoch;
+                        lastalert = timenow_epoch;
+                        alertcount = 1;
+                        oldviolationtype = "";
 
                     # if currently in alert interval
                     for interval in config.alertintervals:
-                        if (timenow_epoch-(config.croninterval/2)) <= (firstalert+interval) < (timenow_epoch+(config.croninterval/2)):
-                            intervalhit=True;
+                        if (timenow_epoch - (config.croninterval / 2)) <= (firstalert + interval) < (timenow_epoch + (config.croninterval / 2)):
+                            intervalhit = True;
                             break
 
                     if firstalert < timenow_epoch and intervalhit and violationtype == oldviolationtype:
-                        alertcount+=1;
-                        lastalert=timenow_epoch;
-                        sendquotamail=True;
+                        alertcount += 1;
+                        lastalert = timenow_epoch;
+                        sendquotamail = True;
 
                     if firstalert != timenow_epoch and violationtype != oldviolationtype:
-                        alertcount=1;
-                        firstalert=timenow_epoch;
-                        lastalert=timenow_epoch;
-                        sendquotamail=True;
+                        alertcount = 1;
+                        firstalert = timenow_epoch;
+                        lastalert = timenow_epoch;
+                        sendquotamail = True;
 
                     if firstalert == timenow_epoch:
-                        sendquotamail=True;
+                        sendquotamail = True;
 
                     if sendquotamail:
-                        mailtouser_from_name=config.mailfrom[maillang][0];
-                        mailtouser_from_addr=config.mailfrom[maillang][1];
-                        mailtoadmin_from_name=config.mailfrom[maillang][0];
-                        mailtoadmin_from_addr=config.mailfrom[maillang][1];
+                        mailtouser_from_name = config.mailfrom[maillang][0];
+                        mailtouser_from_addr = config.mailfrom[maillang][1];
+                        mailtoadmin_from_name = config.mailfrom[maillang][0];
+                        mailtoadmin_from_addr = config.mailfrom[maillang][1];
 
                         if (overinode or alertinode) and config.inodealertoverridemailto != False:
-                            mailtouser_to_addr=config.inodealertoverridemailto;
-                            mailtoadmin_to_addr=config.inodealertoverridemailto;
+                            mailtouser_to_addr = config.inodealertoverridemailto;
+                            mailtoadmin_to_addr = config.inodealertoverridemailto;
                         else:
                             if username in config.warnquotauser.keys():
-                                mailtouser_to_addr=config.warnquotauser[username][1];
-                                mailtoadmin_to_addr=config.warnquotauser[username][2];
+                                mailtouser_to_addr = config.warnquotauser[username][1];
+                                mailtoadmin_to_addr = config.warnquotauser[username][2];
                             else:
-                                mailtouser_to_addr=username+"@"+config.hostname;
-                                mailtoadmin_to_addr=config.defaultadminmailto;
+                                mailtouser_to_addr = username + "@" + config.hostname;
+                                mailtoadmin_to_addr = config.defaultadminmailto;
 
                         if overblock or overinode:
-                            mailtouser_text=config.mailbody_overinode_user[maillang];
-                            mailtoadmin_text=config.mailbody_overinode_admin[maillang];
+                            mailtouser_text = config.mailbody_overinode_user[maillang];
+                            mailtoadmin_text = config.mailbody_overinode_admin[maillang];
                         if (alertinode or alertblock) and not (overinode or overblock):
-                            mailtouser_text=config.mailbody_overblock_user[maillang];
-                            mailtoadmin_text=config.mailbody_overblock_admin[maillang];
+                            mailtouser_text = config.mailbody_overblock_user[maillang];
+                            mailtoadmin_text = config.mailbody_overblock_admin[maillang];
 
-                        blocknum_mb=blocknum/1024.0;
-                        blocklim_mb=blocklim/1024.0;
+                        blocknum_mb = blocknum / 1024.0;
+                        blocklim_mb = blocklim / 1024.0;
 
                         if overblock or overinode:
-                            mailtouser_subject=("%s - %d. %s (%s)"%(config.mailbody_overquota_overquota_user[maillang], alertcount,config.mailbody_overquota_warning[maillang],config.warnquotafs[fs][1][maillang]));
-                            mailtoadmin_subject=("%s %s - %d. %s (%s)"%(useridentifier,config.mailbody_overquota_overquota_admin[maillang],alertcount,config.mailbody_overquota_warning[maillang],config.warnquotafs[fs][1][maillang]));
+                            mailtouser_subject = ("%s - %d. %s (%s)"%(config.mailbody_overquota_overquota_user[maillang], alertcount, config.mailbody_overquota_warning[maillang], config.warnquotafs[fs][1][maillang]));
+                            mailtoadmin_subject = ("%s %s - %d. %s (%s)"%(useridentifier, config.mailbody_overquota_overquota_admin[maillang], alertcount, config.mailbody_overquota_warning[maillang], config.warnquotafs[fs][1][maillang]));
                         else:
-                            mailtouser_subject=("%s - %d. %s (%s)"%(config.mailbody_overquota_alertlimit_user[maillang],alertcount,config.mailbody_overquota_warning[maillang],config.warnquotafs[fs][1][maillang]));
-                            mailtoadmin_subject=("%s %s - %d. %s (%s)"%(config.mailbody_overquota_alertlimit_user[maillang],useridentifier,alertcount,config.mailbody_overquota_warning[maillang],config.warnquotafs[fs][1][maillang]));
+                            mailtouser_subject = ("%s - %d. %s (%s)"%(config.mailbody_overquota_alertlimit_user[maillang], alertcount, config.mailbody_overquota_warning[maillang], config.warnquotafs[fs][1][maillang]));
+                            mailtoadmin_subject = ("%s %s - %d. %s (%s)"%(config.mailbody_overquota_alertlimit_user[maillang], useridentifier, alertcount, config.mailbody_overquota_warning[maillang], config.warnquotafs[fs][1][maillang]));
 
                         if overblock:
-                            if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
-                                mailtouser_text+="\n%s: %s\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,config.mailbody_overquota_gracetime[maillang],graceblock,config.mailbody_overquota_gracedays[maillang]);
+                            if str.rfind(useridentifier, '@') > -1 or str.rfind(useridentifier, '.') > -1:
+                                mailtouser_text += "\n%s: %s\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, config.mailbody_overquota_gracetime[maillang], graceblock, config.mailbody_overquota_gracedays[maillang]);
                             else:
-                                mailtouser_text+="\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,config.mailbody_overquota_gracetime[maillang],graceblock,config.mailbody_overquota_gracedays[maillang]);
-                            mailtoadmin_text+="\n%s: %s\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,config.mailbody_overquota_gracetime[maillang],graceblock,config.mailbody_overquota_gracedays[maillang]);
-                            sendquotausermail=True;
-                            sendquotaadminmail=True;
+                                mailtouser_text += "\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, config.mailbody_overquota_gracetime[maillang], graceblock, config.mailbody_overquota_gracedays[maillang]);
+                            mailtoadmin_text += "\n%s: %s\n%s: %.1f/%.1f MB\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, config.mailbody_overquota_gracetime[maillang], graceblock, config.mailbody_overquota_gracedays[maillang]);
+                            sendquotausermail = True;
+                            sendquotaadminmail = True;
 
                         if alertblock and not overblock:
-                            if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
-                                mailtouser_text+="\n%s: %s\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,blocknum/blocklim*100,config.mailbody_overquota_alertlimit[maillang],alertblockpercent);
+                            if str.rfind(useridentifier, '@') > -1 or str.rfind(useridentifier, '.') > -1:
+                                mailtouser_text += "\n%s: %s\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, blocknum / blocklim * 100, config.mailbody_overquota_alertlimit[maillang], alertblockpercent);
                             else:
-                                mailtouser_text+="\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,blocknum/blocklim*100,config.mailbody_overquota_alertlimit[maillang],alertblockpercent);
-                            sendquotausermail=True;
+                                mailtouser_text += "\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, blocknum / blocklim * 100, config.mailbody_overquota_alertlimit[maillang], alertblockpercent);
+                            sendquotausermail = True;
                             if alertadminalert:
-                                sendquotaadminmail=True;
-                                mailtoadmin_text+="\n%s: %s\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],blocknum_mb,blocklim_mb,blocknum/blocklim*100,config.mailbody_overquota_alertlimit[maillang],alertblockpercent);
+                                sendquotaadminmail = True;
+                                mailtoadmin_text += "\n%s: %s\n%s: %.1f/%.1f MB (%2.1f%%)\n%s: %s%%\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], blocknum_mb, blocklim_mb, blocknum / blocklim * 100, config.mailbody_overquota_alertlimit[maillang], alertblockpercent);
 
                         if overinode:
                             if sendinodetouser:
-                                sendquotausermail=True;
-                                if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
-                                    mailtouser_text+="\n%s: %s\n%s%s: %d/%d\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,config.mailbody_overquota_gracetime[maillang],graceinode,config.mailbody_overquota_gracedays[maillang]);
+                                sendquotausermail = True;
+                                if str.rfind(useridentifier, '@') > -1 or str.rfind(useridentifier, '.') > -1:
+                                    mailtouser_text += "\n%s: %s\n%s%s: %d/%d\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, config.mailbody_overquota_gracetime[maillang], graceinode, config.mailbody_overquota_gracedays[maillang]);
                                 else:
-                                    mailtouser_text+="\n%s%s: %d/%d\n%s: %s %s\n"%(config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,config.mailbody_overquota_gracetime[maillang],graceinode,config.mailbody_overquota_gracedays[maillang]);
-                            mailtoadmin_text+="\n%s: %s\n%s%s: %d/%d\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,config.mailbody_overquota_gracetime[maillang],graceinode,config.mailbody_overquota_gracedays[maillang]);
-                            sendquotaadminmail=True;
+                                    mailtouser_text += "\n%s%s: %d/%d\n%s: %s %s\n"%(config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, config.mailbody_overquota_gracetime[maillang], graceinode, config.mailbody_overquota_gracedays[maillang]);
+                            mailtoadmin_text += "\n%s: %s\n%s%s: %d/%d\n%s: %s %s\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, config.mailbody_overquota_gracetime[maillang], graceinode, config.mailbody_overquota_gracedays[maillang]);
+                            sendquotaadminmail = True;
 
                         if alertinode and not overinode:
                             if sendinodetouser:
-                                sendquotausermail=True;
-                                if str.rfind(useridentifier,'@') > -1 or str.rfind(useridentifier,'.') > -1:
-                                    mailtouser_text+="\n%s: %s\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,inodenum/inodelim*100,config.mailbody_overquota_alertlimit[maillang],alertinodepercent);
+                                sendquotausermail = True;
+                                if str.rfind(useridentifier, '@') > -1 or str.rfind(useridentifier, '.') > -1:
+                                    mailtouser_text += "\n%s: %s\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, inodenum / inodelim * 100, config.mailbody_overquota_alertlimit[maillang], alertinodepercent);
                                 else:
-                                    mailtouser_text+="\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,inodenum/inodelim*100,config.mailbody_overquota_alertlimit[maillang],alertinodepercent);
+                                    mailtouser_text += "\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, inodenum / inodelim * 100, config.mailbody_overquota_alertlimit[maillang], alertinodepercent);
                             # admin always gets mail about inode limits
-                            sendquotaadminmail=True;
-                            mailtoadmin_text+="\n%s: %s\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.mailbody_overquota_userid[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_overquota_inodes[maillang],inodenum,inodelim,inodenum/inodelim*100,config.mailbody_overquota_alertlimit[maillang],alertinodepercent);
+                            sendquotaadminmail = True;
+                            mailtoadmin_text += "\n%s: %s\n%s%s: %d/%d (%2.1f%%)\n%s: %d%%\n"%(config.mailbody_overquota_userid[maillang], useridentifier, config.warnquotafs[fs][1][maillang], config.mailbody_overquota_inodes[maillang], inodenum, inodelim, inodenum / inodelim * 100, config.mailbody_overquota_alertlimit[maillang], alertinodepercent);
 
-                        mailtouser_text +=config.mailbody_overquota_footer_user[maillang];
-                        mailtoadmin_text+=config.mailbody_overquota_footer_admin[maillang];
+                        mailtouser_text  += config.mailbody_overquota_footer_user[maillang];
+                        mailtoadmin_text += config.mailbody_overquota_footer_admin[maillang];
 
                         if sendquotausermail:
                             if not simulation:
-                                wqng_sendmail(mailtouser_from_addr,mailtouser_from_name,mailtouser_to_addr,mailtouser_subject,mailtouser_text);
-                                syslog.syslog('Mail sent to user: %s to %s'%(useridentifier,mailtouser_to_addr));
+                                wqng_sendmail(mailtouser_from_addr, mailtouser_from_name, mailtouser_to_addr, mailtouser_subject, mailtouser_text);
+                                syslog.syslog('Mail sent to user: %s to %s'%(useridentifier, mailtouser_to_addr));
                             if debuglevel > 1:
-                                print(mailtouser_from_addr,mailtouser_from_name,mailtouser_to_addr,mailtouser_subject,mailtouser_text);
+                                print(mailtouser_from_addr, mailtouser_from_name, mailtouser_to_addr, mailtouser_subject, mailtouser_text);
                         if sendquotaadminmail:
                             if not simulation:
-                                wqng_sendmail(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
-                                syslog.syslog('Mail sent to admin regarding user: %s to %s'%(useridentifier,mailtoadmin_to_addr));
+                                wqng_sendmail(mailtoadmin_from_addr, mailtoadmin_from_name, mailtoadmin_to_addr, mailtoadmin_subject, mailtoadmin_text);
+                                syslog.syslog('Mail sent to admin regarding user: %s to %s'%(useridentifier, mailtoadmin_to_addr));
                             if debuglevel > 1:
-                                print(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
+                                print(mailtoadmin_from_addr, mailtoadmin_from_name, mailtoadmin_to_addr, mailtoadmin_subject, mailtoadmin_text);
 
-                    warnquotastatenew[username]=[firstalert,lastalert,alertcount,violationtype];
+                    warnquotastatenew[username] = [firstalert, lastalert, alertcount, violationtype];
 
-                overblock=False;
-                overinode=False;
-                alertblock=False;
-                alertinode=False;
-                overadminalert=False;
-                alertadminalert=False;
+                overblock = False;
+                overinode = False;
+                alertblock = False;
+                alertinode = False;
+                overadminalert = False;
+                alertadminalert = False;
 
         # end of mainloop
 
         # those who went below quota just right now
-        quotaokusers=set(warnquotastate).difference(set(warnquotastatenew));
+        quotaokusers = set(warnquotastate).difference(set(warnquotastatenew));
 
         if debuglevel > 2:
-            print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][0],list(quotaokusers)));
+            print("%s\n\nquotaokusers: %s"%(config.warnquotafs[fs][0], list(quotaokusers)));
             print("\nwarnquotastate:\n");
-            for i in warnquotastate.keys():
-                print("%s: %s"%(i,warnquotastate[i]));
+            for wqskey in warnquotastate.keys():
+                print("%s: %s"%(wqskey, warnquotastate[wqskey]));
             print("\nwarnquotastatenew:\n");
-            for i in warnquotastatenew.keys():
-                print("%s: %s"%(i,warnquotastatenew[i]));
+            for wqsnewkey in warnquotastatenew.keys():
+                print("%s: %s"%(wqsnewkey, warnquotastatenew[wqsnewkey]));
 
         # send mail to notify user that quota is ok now
         for username in list(quotaokusers):
-            recoveredfrominode=((1000 > warnquotastate[username][3] >= 100) or warnquotastate[username][3] & 1 );
+            recoveredfrominode = ((1000 > warnquotastate[username][3] >= 100) or warnquotastate[username][3] & 1 );
             if username in config.warnquotauser.keys():
-                sendinodetouser=config.warnquotauser[username][7];
-                useridentifier=config.warnquotauser[username][0];
-                maillang=config.warnquotauser[username][8];
+                sendinodetouser = config.warnquotauser[username][7];
+                useridentifier = config.warnquotauser[username][0];
+                maillang = config.warnquotauser[username][8];
                 if maillang not in config.supportedlanguages:
-                    maillang=config.defaultlang;
-                mailtouser_to_addr=config.warnquotauser[username][1];
+                    maillang = config.defaultlang;
+                mailtouser_to_addr = config.warnquotauser[username][1];
                 if recoveredfrominode and config.inodealertoverridemailto != False:
-                    mailtoadmin_to_addr=config.inodealertoverridemailto;
+                    mailtoadmin_to_addr = config.inodealertoverridemailto;
                 else:
-                    mailtoadmin_to_addr=config.warnquotauser[username][2];
+                    mailtoadmin_to_addr = config.warnquotauser[username][2];
             else:
-                sendinodetouser=config.defaultsendinodetouser;
-                useridentifier=username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
-                mailtouser_to_addr=username+"@"+config.hostname;
+                sendinodetouser = config.defaultsendinodetouser;
+                useridentifier = username; # not the same! username is the system id, useridentifier is the one in LDAP/SQL/etc. (email/host)
+                mailtouser_to_addr = username + "@" + config.hostname;
                 if recoveredfrominode and config.inodealertoverridemailto != False:
-                    mailtoadmin_to_addr=config.inodealertoverridemailto;
+                    mailtoadmin_to_addr = config.inodealertoverridemailto;
                 else:
-                    mailtoadmin_to_addr=config.defaultadminmailto;
-                maillang=config.defaultlang;
+                    mailtoadmin_to_addr = config.defaultadminmailto;
+                maillang = config.defaultlang;
 
-            mailtouser_from_name=config.mailfrom[maillang][0];
-            mailtouser_from_addr=config.mailfrom[maillang][1];
-            mailtoadmin_from_name=config.mailfrom[maillang][0];
-            mailtoadmin_from_addr=config.mailfrom[maillang][1];
-            mailtouser_subject=config.mailbody_quotaok_subj[maillang];
-            mailtoadmin_subject=config.mailbody_quotaok_subj[maillang]+" ("+useridentifier+")";
-            mailtouser_text="%s (%s) %s"%(config.mailbody_quotaok_user1[maillang],config.warnquotafs[fs][1][maillang],config.mailbody_quotaok_user2[maillang]);
-            mailtoadmin_text="%s (%s - %s) %s"%(config.mailbody_quotaok_admin1[maillang],useridentifier,config.warnquotafs[fs][1][maillang],config.mailbody_quotaok_admin2[maillang]);
+            mailtouser_from_name = config.mailfrom[maillang][0];
+            mailtouser_from_addr = config.mailfrom[maillang][1];
+            mailtoadmin_from_name = config.mailfrom[maillang][0];
+            mailtoadmin_from_addr = config.mailfrom[maillang][1];
+            mailtouser_subject = config.mailbody_quotaok_subj[maillang];
+            mailtoadmin_subject = config.mailbody_quotaok_subj[maillang] + " (" + useridentifier + ")";
+            mailtouser_text = "%s (%s) %s"%(config.mailbody_quotaok_user1[maillang], config.warnquotafs[fs][1][maillang], config.mailbody_quotaok_user2[maillang]);
+            mailtoadmin_text = "%s (%s - %s) %s"%(config.mailbody_quotaok_admin1[maillang], useridentifier, config.warnquotafs[fs][1][maillang], config.mailbody_quotaok_admin2[maillang]);
 
             if not simulation:
                 if not recoveredfrominode or (recoveredfrominode and sendinodetouser):
-                    wqng_sendmail(mailtouser_from_addr,mailtouser_from_name,mailtouser_to_addr,mailtouser_subject,mailtouser_text);
-                    syslog.syslog('OK mail sent to user: %s to %s'%(useridentifier,mailtouser_to_addr));
+                    wqng_sendmail(mailtouser_from_addr, mailtouser_from_name, mailtouser_to_addr, mailtouser_subject, mailtouser_text);
+                    syslog.syslog('OK mail sent to user: %s to %s'%(useridentifier, mailtouser_to_addr));
                     if debuglevel > 1:
-                        print(mailtouser_from_addr,mailtouser_from_name,mailtouser_to_addr,mailtouser_subject,mailtouser_text);
-                wqng_sendmail(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
-                syslog.syslog('OK mail sent to admin to %s, regarding user: %s'%(mailtoadmin_to_addr,useridentifier));
+                        print(mailtouser_from_addr, mailtouser_from_name, mailtouser_to_addr, mailtouser_subject, mailtouser_text);
+                wqng_sendmail(mailtoadmin_from_addr, mailtoadmin_from_name, mailtoadmin_to_addr, mailtoadmin_subject, mailtoadmin_text);
+                syslog.syslog('OK mail sent to admin to %s, regarding user: %s'%(mailtoadmin_to_addr, useridentifier));
                 if debuglevel > 1:
-                    print(mailtoadmin_from_addr,mailtoadmin_from_name,mailtoadmin_to_addr,mailtoadmin_subject,mailtoadmin_text);
+                    print(mailtoadmin_from_addr, mailtoadmin_from_name, mailtoadmin_to_addr, mailtoadmin_subject, mailtoadmin_text);
 
 
         # update state file
         if not simulation:
-            fsstatehandle=os.open(config.warnquotastatedir+"/warnquota-ng.fs."+fs+".state",os.O_CREAT+os.O_WRONLY+os.O_TRUNC,0o640);
+            fsstatehandle = os.open(config.warnquotastatedir + "/warnquota-ng.fs." + fs + ".state", os.O_CREAT + os.O_WRONLY + os.O_TRUNC, 0o640);
             for stateuser in warnquotastatenew.keys():
-                os.write(fsstatehandle,bytes("%s:%s\n"%(stateuser,':'.join(map(str,warnquotastatenew[stateuser]))),"utf-8"));
+                os.write(fsstatehandle, bytes("%s:%s\n"%(stateuser, ':'.join(map(str, warnquotastatenew[stateuser]))), "utf-8"));
             os.close(fsstatehandle);
 
 
@@ -699,7 +699,7 @@ def checkquota(fs):
 
 ### the weekend starts here ###
 
-configfile=config.configfiledir+"/warnquota-ng.conf";
+configfile = config.configfiledir + "/warnquota-ng.conf";
 if not os.path.isfile(configfile):
     print("cannot open configuration file: %s!"%(configfile));
     sys.exit(1);
@@ -712,43 +712,43 @@ except:
     sys.exit(1);
 
 if config.hostname == '':
-    hostnamehandle=os.popen('/bin/hostname','r');
-    config.hostname=hostnamehandle.read()[:-1];
-    exitval=hostnamehandle.close();
+    hostnamehandle = os.popen('/bin/hostname', 'r');
+    config.hostname = hostnamehandle.read()[:-1];
+    exitval = hostnamehandle.close();
     if exitval != None:
         print("Error getting hostname.");
         sys.exit(3);
 
 if config.defaultadminmailto == '':
-    config.defaultadminmailto="quotaadmin@"+hostname;
+    config.defaultadminmailto = "quotaadmin@" + hostname;
 if config.inodealertoverridemailto == '':
-    config.inodealertoverridemailto="quotaadmin@"+hostname;
+    config.inodealertoverridemailto = "quotaadmin@" + hostname;
 if config.mailfrom['hu'] == '':
-    config.mailfrom['hu']=["Hosting Ügyfélszolgálat","ugyfelszolgalat@"+hostname];
+    config.mailfrom['hu'] = ["Hosting Ügyfélszolgálat", "ugyfelszolgalat@" + hostname];
 if config.mailfrom['en'] == '':
-    config.mailfrom['en']=["Hosting Support","support@"+hostname];
+    config.mailfrom['en'] = ["Hosting Support", "support@" + hostname];
 if config.mailbody_signature['hu'] == '':
-    config.mailbody_signature['hu']='Üdvözlettel:\nHosting Ügyfélszolgálat\n\n'+hostname+'\n';
+    config.mailbody_signature['hu'] = 'Üdvözlettel:\nHosting Ügyfélszolgálat\n\n' + hostname + '\n';
 if config.mailbody_signature['en'] == '':
-    config.mailbody_signature['en']='Hosting Support Team\n\n'+hostname+'\n';
+    config.mailbody_signature['en'] = 'Hosting Support Team\n\n' + hostname + '\n';
 if config.support_contactmail_for_user['hu'] == '':
-    config.support_contactmail_for_user['hu']="info@"+hostname;
+    config.support_contactmail_for_user['hu'] = "info@" + hostname;
 if config.support_contactmail_for_user['en'] == '':
-    config.support_contactmail_for_user['en']="info@"+hostname;
+    config.support_contactmail_for_user['en'] = "info@" + hostname;
 if config.support_contactmail_for_admin['hu'] == '':
-    config.support_contactmail_for_admin['hu']="info@"+hostname;
+    config.support_contactmail_for_admin['hu'] = "info@" + hostname;
 if config.support_contactmail_for_admin['en'] == '':
-    config.support_contactmail_for_admin['en']="info@"+hostname;
+    config.support_contactmail_for_admin['en'] = "info@" + hostname;
 
-config.mailbody_quotaok_user2['hu']=config.mailbody_quotaok_user2['hu']+'\n\n'+config.mailbody_signature['hu'];
-config.mailbody_quotaok_admin2['hu']=config.mailbody_quotaok_admin2['hu']+'\n\n'+config.mailbody_signature['hu'];
-config.mailbody_quotaok_user2['en']=config.mailbody_quotaok_user2['en']+'\n\n'+config.mailbody_signature['en'];
-config.mailbody_quotaok_admin2['en']=config.mailbody_quotaok_admin2['en']+'\n\n'+config.mailbody_signature['en'];
+config.mailbody_quotaok_user2['hu'] = config.mailbody_quotaok_user2['hu'] + '\n\n' + config.mailbody_signature['hu'];
+config.mailbody_quotaok_admin2['hu'] = config.mailbody_quotaok_admin2['hu'] + '\n\n' + config.mailbody_signature['hu'];
+config.mailbody_quotaok_user2['en'] = config.mailbody_quotaok_user2['en'] + '\n\n' + config.mailbody_signature['en'];
+config.mailbody_quotaok_admin2['en'] = config.mailbody_quotaok_admin2['en'] + '\n\n' + config.mailbody_signature['en'];
 
-config.mailbody_overquota_footer_user['hu']=config.mailbody_overquota_footer_user1['hu']+config.support_contactmail_for_user['hu']+config.mailbody_overquota_footer_user2['hu']+config.support_contactphone_for_user['hu']+config.mailbody_overquota_footer_user3['hu']+'\n\n'+config.mailbody_signature['hu'];
-config.mailbody_overquota_footer_user['en']=config.mailbody_overquota_footer_user1['en']+config.support_contactmail_for_user['en']+config.mailbody_overquota_footer_user2['en']+config.support_contactphone_for_user['en']+config.mailbody_overquota_footer_user3['en']+'\n\n'+config.mailbody_signature['en'];
-config.mailbody_overquota_footer_admin['hu']=config.mailbody_overquota_footer_admin1['hu']+config.support_contactmail_for_admin['hu']+config.mailbody_overquota_footer_admin2['hu']+config.support_contactphone_for_admin['hu']+config.mailbody_overquota_footer_admin3['hu']+'\n\n'+config.mailbody_signature['hu'];
-config.mailbody_overquota_footer_admin['en']=config.mailbody_overquota_footer_admin1['en']+config.support_contactmail_for_admin['en']+config.mailbody_overquota_footer_admin2['en']+config.support_contactphone_for_admin['en']+config.mailbody_overquota_footer_admin3['en']+'\n\n'+config.mailbody_signature['en'];
+config.mailbody_overquota_footer_user['hu'] = config.mailbody_overquota_footer_user1['hu'] + config.support_contactmail_for_user['hu'] + config.mailbody_overquota_footer_user2['hu'] + config.support_contactphone_for_user['hu'] + config.mailbody_overquota_footer_user3['hu'] + '\n\n' + config.mailbody_signature['hu'];
+config.mailbody_overquota_footer_user['en'] = config.mailbody_overquota_footer_user1['en'] + config.support_contactmail_for_user['en'] + config.mailbody_overquota_footer_user2['en'] + config.support_contactphone_for_user['en'] + config.mailbody_overquota_footer_user3['en'] + '\n\n' + config.mailbody_signature['en'];
+config.mailbody_overquota_footer_admin['hu'] = config.mailbody_overquota_footer_admin1['hu'] + config.support_contactmail_for_admin['hu'] + config.mailbody_overquota_footer_admin2['hu'] + config.support_contactphone_for_admin['hu'] + config.mailbody_overquota_footer_admin3['hu'] + '\n\n' + config.mailbody_signature['hu'];
+config.mailbody_overquota_footer_admin['en'] = config.mailbody_overquota_footer_admin1['en'] + config.support_contactmail_for_admin['en'] + config.mailbody_overquota_footer_admin2['en'] + config.support_contactphone_for_admin['en'] + config.mailbody_overquota_footer_admin3['en'] + '\n\n' + config.mailbody_signature['en'];
 
 syslog.openlog('warnquota-ng');
 
@@ -766,53 +766,53 @@ elif wqng_runmode == 'ldapconfgen':
         sys.exit(1);
 
     if config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] == ')':
-        config.mainldapfilter=config.mainldapfilter[1:-1];
+        config.mainldapfilter = config.mainldapfilter[1:-1];
 
     for wqngfs in config.warnquotafs.keys():
         if len(config.warnquotafs[wqngfs]) == 3:
-            user_ldapfilter=config.warnquotafs[wqngfs][2];
+            user_ldapfilter = config.warnquotafs[wqngfs][2];
         else:
-            user_ldapfilter=None;
+            user_ldapfilter = None;
         if debuglevel > 0:
-            print("user ldapfilter for %s: %s"%(wqngfs,user_ldapfilter));
+            print("user ldapfilter for %s: %s"%(wqngfs, user_ldapfilter));
 
-        fsconffilepath=config.configfiledir+"/warnquota-ng.fs."+wqngfs+".conf";
+        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf";
         if os.path.isfile(fsconffilepath):
             try:
-                shutil.copy2(fsconffilepath,config.configbackuppath);
+                shutil.copy2(fsconffilepath, config.configbackuppath);
             except:
-                print("Cannot backup old fsconfig: %s -> %s",fsconffilepath,config.configbackuppath);
+                print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.configbackuppath);
                 sys.exit(1);
 
-        fsconflockfilepath=config.configfiledir+"/warnquota-ng.fs."+wqngfs+".conf.lock";
+        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
         if os.path.isfile(fsconflockfilepath):
-            print("Lock file exist: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath,wqngfs));
+            print("Lock file exist: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
             continue
 
         try:
-            fsconflockhandle=os.open(fsconflockfilepath,os.O_WRONLY+os.O_CREAT, 0o600);
+            fsconflockhandle = os.open(fsconflockfilepath, os.O_WRONLY + os.O_CREAT, 0o600);
         except:
-            print("Error creating lockfile: ",fsconflockfilepath);
+            print("Error creating lockfile: ", fsconflockfilepath);
             sys.exit(1);
         os.close(fsconflockhandle);
 
-        fsconfhandle=os.open(fsconffilepath,os.O_WRONLY+os.O_TRUNC+os.O_CREAT, config.ldap_fsconf_perm);
-        if os.path.isfile(fsconffilepath+".head"):
+        fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
+        if os.path.isfile(fsconffilepath + ".head"):
             if debuglevel > 0:
-                print("Using .head file: ",fsconffilepath+".head");
+                print("Using .head file: ", fsconffilepath + ".head");
             try:
-                fsconfigheaddata=open(fsconffilepath+".head","rt").read();
+                fsconfigheaddata = open(fsconffilepath + ".head", "rt").read();
             except:
-                print("Cannot read .head file: ",fsconffilepath+".head");
+                print("Cannot read .head file: ", fsconffilepath + ".head");
                 sys.exit(1);
-            os.write(fsconfhandle,bytes(fsconfigheaddata,"utf-8"));
-        os.write(fsconfhandle,bytes(wqng_ldap_genconfig(user_ldapfilter),"utf-8"));
+            os.write(fsconfhandle, bytes(fsconfigheaddata, "utf-8"));
+        os.write(fsconfhandle, bytes(wqng_ldap_genconfig(user_ldapfilter), "utf-8"));
         os.close(fsconfhandle);
 
         try:
             os.remove(fsconflockfilepath);
         except:
-            print("Error removing lockfile: ",fsconflockfilepath);
+            print("Error removing lockfile: ", fsconflockfilepath);
 
 else:
     print("ERROR: unknown runmode! BUG?");
