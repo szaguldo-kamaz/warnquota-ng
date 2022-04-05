@@ -7,7 +7,7 @@
 # david.vincze@webcode.hu
 #
 
-import sys, os, shutil, time, datetime, syslog, smtplib, email
+import sys, os, shutil, time, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
@@ -495,7 +495,7 @@ def checkquota(fs):
                     violationtype = int(overblock) * 1000 + int(overinode) * 100 + int(alertblock) * 10 + int(alertinode);
 
                     # sendmail can take some time so we need to recheck time in every iteration to be accurate
-                    timenow_epoch = int(time.mktime(datetime.datetime.now().timetuple()));
+                    timenow_epoch = int(time.time());
 
                     # a new user could have appeared, so check again
                     if username in warnquotastate.keys():
