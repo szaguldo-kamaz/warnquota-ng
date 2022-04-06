@@ -488,8 +488,6 @@ def checkquota(fs):
         rq_lines = wqng_repquota(config.warnquotafs[fs][0]);
         systemquotastate = wqng_parse_rqline_legacy(rq_lines);
 
-        overblock = False;
-        overinode = False;
         alertblock = False;
         alertinode = False;
         overadminalert = False;
@@ -499,7 +497,7 @@ def checkquota(fs):
         for username in systemquotastate.keys():
                 [ blocknum, blocklim, overblock, graceblock, inodenum, inodelim, overinode, graceinode ] = systemquotastate[username];
 
-                # has an associated config entry
+                # user has an associated config entry
                 if (username in config.warnquotauser.keys()):
                     useridentifier = config.warnquotauser[username][0];
                     alertblockpercent = config.warnquotauser[username][3];
@@ -508,18 +506,7 @@ def checkquota(fs):
                     except:
                         alertinodepercent = 0.0;
                         print('Error in config: %s username: %s alertinodepercent: %s'%(fsconffilepath, username, config.warnquotauser[username][4]));
-                    alertadminalert = config.warnquotauser[username][5];
-                    if alertadminalert != True and alertadminalert != False:
-                        alertadminalert = True;
-                    overadminalert = config.warnquotauser[username][6];
-                    if overadminalert != True and overadminalert != False:
-                        overadminalert = True;
-                    sendinodetouser = config.warnquotauser[username][7];
-                    if sendinodetouser != True and sendinodetouser != False:
-                        sendinodetouser = True;
-                    maillang = config.warnquotauser[username][8];
-                    if maillang not in config.supportedlanguages:
-                        maillang = config.defaultlang;
+                    [ alertadminalert, overadminalert, sendinodetouser, maillang ] = config.warnquotauser[username][5:9];
                 else: # user does not have an entry in the configuration file
                     if config.knownusersonly:
                         continue
