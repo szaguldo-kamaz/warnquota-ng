@@ -282,6 +282,115 @@ def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
             smtpconn.quit();
 
 
+def wqng_repquota(mountpoint):
+
+    rqhandle = os.popen(config.repquotapathcmd + ' ' + mountpoint, 'r');
+    rq_lines = rqhandle.read();
+    exitval = rqhandle.close();
+    if exitval != None:
+        print('Something is wrong with repquota: ' + str(exitval));
+        sys.exit(2);
+
+    return rq_lines
+
+
+def wqng_parse_rqline_csv(rq_lines_csv):
+
+    sysqstate = {};
+
+    for rqlinecsv in rq_lines_csv.split('\n'):
+
+        if rqlinecsv == '':
+            continue
+
+        rqlinecsv_s = rqlinecsv.split(',');
+
+        overblock = rqlinecsv_s[1] in [ 'hard', 'soft' ];
+        overinode = rqlinecsv_s[2] in [ 'hard', 'soft' ];
+
+        if overblock:
+            graceblock = rqlinecsv_s[6][0];
+            if graceblock == 'n':
+                graceblock = 0;
+            else:
+                try:
+                    if rqlinecsv_s[6][1] == 'd':
+                        graceblock = int(graceblock);
+                    else:
+                        graceblock = 0;
+                except:
+                    graceblock = 0;
+        else:
+            graceblock = 0;
+
+        if overinode:
+            graceinode = rqlinecsv_s[10][0];
+            if graceinode == 'n':
+                graceinode = 0;
+            else:
+                try:
+                    graceinode = int(graceinode);
+                except:
+                    graceinode = 0;
+        else:
+            graceinode = 0;
+
+        if debuglevel > 2:
+            print("rqlinecsv: ", rqlinecsv);
+
+        blocknum = float(rqlinecsv_s[3]);
+        blocklim = float(rqlinecsv_s[4]);
+        inodenum = float(rqlinecsv_s[7]);
+        inodelim = float(rqlinecsv_s[8]);
+
+        sysqstate[rqlinecsv_s[0]] = [ blocknum, blocklim, overblock, graceblock, inodenum, inodelim, overinode, graceinode ];
+
+    return sysqstate
+
+
+def wqng_parse_rqline_legacy(rq_lines):
+
+    rq_lines_csv = '';
+
+    # convert to csv
+    for rqline in rq_lines.split('\n')[5:]:
+
+        if rqline == '':
+            continue
+
+        rqfields = rqline.split();
+
+        # at least the block limit has been reached
+        if rqfields[1][0] == '+':
+            overblockstr = 'soft';
+            [ graceblock, inodenum, inodelim, inodehardlim ] = rqfields[5:9];
+        else:
+            overblockstr = 'ok';
+            graceblock = '';
+            [ inodenum, inodelim, inodehardlim ] = rqfields[5:8];
+
+        # if inode is over limit
+        if rqfields[1][1] == '+':
+            overinodestr = 'soft';
+            # if both are over limit
+            if rqfields[1] == '++':
+                graceinode = rqfields[9];
+            else: # '-+' - only inode count is over limit
+                graceinode = rqfields[8];
+        else:
+            overinodestr = '';
+            graceinode = '';
+
+        if debuglevel > 2:
+            print("repquota fields:", rqfields);
+
+        rq_lines_csv += "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(rqfields[0], overblockstr, overinodestr, rqfields[2], rqfields[3], rqfields[4], graceblock, inodenum, inodelim, inodehardlim, graceinode);
+
+    if debuglevel > 2:
+        print("rq_lines_csv:", rq_lines_csv);
+
+    return wqng_parse_rqline_csv(rq_lines_csv);
+
 
 def checkquota(fs):
 
@@ -376,13 +485,8 @@ def checkquota(fs):
 
                     warnquotastate[statefile_sysuid] = [statefile_firstalert, statefile_lastalert, statefile_alertcount, statefile_violationtype];
 
-
-        rqhandle = os.popen(config.repquotapathcmd + ' ' + config.warnquotafs[fs][0], 'r');
-        rq = rqhandle.read();
-        exitval = rqhandle.close();
-        if exitval != None:
-            print('Something is wrong with repquota: ' + str(exitval));
-            sys.exit(2);
+        rq_lines = wqng_repquota(config.warnquotafs[fs][0]);
+        systemquotastate = wqng_parse_rqline_legacy(rq_lines);
 
         overblock = False;
         overinode = False;
@@ -392,12 +496,8 @@ def checkquota(fs):
         alertadminalert = False;
         sendquotamail = False;
 
-        # mainloop
-        for rqline in rq.split('\n')[5:]:
-                if rqline == '':
-                    continue
-                rqfields = rqline.split();
-                username = rqfields[0];
+        for username in systemquotastate.keys():
+                [ blocknum, blocklim, overblock, graceblock, inodenum, inodelim, overinode, graceinode ] = systemquotastate[username];
 
                 # has an associated config entry
                 if (username in config.warnquotauser.keys()):
@@ -432,47 +532,6 @@ def checkquota(fs):
                     alertblock = False;
                     alertinode = False;
                     maillang = config.defaultlang;
-
-                blocknum = float(rqfields[2]);
-                blocklim = float(rqfields[3]);
-                if debuglevel > 2:
-                    print("repquota fields: ", rqfields);
-
-                # at least the block limit has been reached
-                if rqfields[1][0] == '+':
-                    overblock = True;
-                    graceblock = rqfields[5][0];
-                    if graceblock == "n":
-                        graceblock = 0;
-                    else:
-                        try:
-                            graceblock = int(graceblock);
-                        except:
-                            graceblock = 0;
-
-                if overblock:
-                    inodenum = float(rqfields[6]);
-                    inodelim = float(rqfields[7]);
-                else:
-                    inodenum = float(rqfields[5]);
-                    inodelim = float(rqfields[6]);
-
-                # if inode is over limit
-                if rqfields[1][1] == '+':
-                    overinode = True;
-                    # if both are over limit
-                    if rqfields[1] == '++':
-                        graceinode = rqfields[9][0];
-                    else: # '-+' - only inode count is over limit
-                        graceinode = rqfields[8][0];
-
-                    if graceinode == "n":
-                        graceinode = 0;
-                    else:
-                        try:
-                            graceinode = int(graceinode);
-                        except:
-                            graceinode = 0;
 
                 # alert percentage has been reached
                 if (alertblockpercent != 0.0) and ((blocknum / blocklim) >= (alertblockpercent / 100.0)):
