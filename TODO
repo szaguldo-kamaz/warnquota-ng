@@ -1,3 +1,2 @@
 Implement repquota runmode, so most of the code can run with normal user privileges
 Consider dropping unnecessary capabilities at startup
-Use the csv output format feature of repquota (needs at least quotatools v4.02)

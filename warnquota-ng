@@ -89,6 +89,9 @@ class config:
                     "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"} ]
                   };
 
+    # default repquota options
+    repquota_use_csv_format = False;
+
     # default SMTP settings
     smtphost = "localhost";
     smtpport = 25;
@@ -282,9 +285,12 @@ def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
             smtpconn.quit();
 
 
-def wqng_repquota(mountpoint):
+def wqng_repquota(mountpoint, csvformat):
 
-    rqhandle = os.popen(config.repquotapathcmd + ' ' + mountpoint, 'r');
+    if csvformat:
+        rqhandle = os.popen(config.repquotapathcmd + ' -O csv ' + mountpoint, 'r');
+    else:
+        rqhandle = os.popen(config.repquotapathcmd + ' ' + mountpoint, 'r');
     rq_lines = rqhandle.read();
     exitval = rqhandle.close();
     if exitval != None:
@@ -298,7 +304,7 @@ def wqng_parse_rqline_csv(rq_lines_csv):
 
     sysqstate = {};
 
-    for rqlinecsv in rq_lines_csv.split('\n'):
+    for rqlinecsv in rq_lines_csv.split('\n')[1:]:
 
         if rqlinecsv == '':
             continue
@@ -350,7 +356,8 @@ def wqng_parse_rqline_csv(rq_lines_csv):
 
 def wqng_parse_rqline_legacy(rq_lines):
 
-    rq_lines_csv = '';
+    # first line is a dummy line
+    rq_lines_csv = 'csv header dummy\n';
 
     # convert to csv
     for rqline in rq_lines.split('\n')[5:]:
@@ -485,8 +492,11 @@ def checkquota(fs):
 
                     warnquotastate[statefile_sysuid] = [statefile_firstalert, statefile_lastalert, statefile_alertcount, statefile_violationtype];
 
-        rq_lines = wqng_repquota(config.warnquotafs[fs][0]);
-        systemquotastate = wqng_parse_rqline_legacy(rq_lines);
+        rq_lines = wqng_repquota(config.warnquotafs[fs][0], config.repquota_use_csv_format);
+        if config.repquota_use_csv_format:
+            systemquotastate = wqng_parse_rqline_csv(rq_lines);
+        else:
+            systemquotastate = wqng_parse_rqline_legacy(rq_lines);
 
         alertblock = False;
         alertinode = False;

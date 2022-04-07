@@ -19,6 +19,8 @@ config.warnquotafs = { "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':
 #                       "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"}, "(usertype=web)" ]
 #                     };
 
+# repquota options
+config.repquota_use_csv_format = WQNG_REPQUOTACSVFORMAT;
 
 # SMTP server settings
 config.smtphost = "localhost";

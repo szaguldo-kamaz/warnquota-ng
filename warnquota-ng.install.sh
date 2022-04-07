@@ -42,6 +42,29 @@ if [ ${WQNG_RQPATH}x == x ]; then
     exit 1
 fi
 
+echo -n Checking repquota version...\ 
+RQVERSTRING=`${WQNG_RQPATH} --version|head -n 1|cut -d" " -f4`
+RQVERMAJOR=`echo ${RQVERSTRING}|cut -d. -f1`
+RQVERMINOR=`echo ${RQVERSTRING}|cut -d. -f2`
+if [ ${RQVERMAJOR} -lt 4 ]; then
+    echo WARNING: warnquota-ng was tested only with repquota version \>= 4.00. Your version is: ${RQVERSTRING} \(It might work anyway.\)
+    WQNG_REPQUOTACSVFORMAT=False
+elif [ ${RQVERMAJOR} -gt 4 ]; then
+    WQNG_REPQUOTACSVFORMAT=True
+else
+    if [ ${RQVERMINOR} = 0 ] || [ ${RQVERMINOR} = 00 ] || [ ${RQVERMINOR} = 01 ]; then
+        WQNG_REPQUOTACSVFORMAT=False
+    else
+        WQNG_REPQUOTACSVFORMAT=True
+    fi
+fi
+echo -n ${RQVERMAJOR}.${RQVERMINOR} \(CSV format available:\ 
+if [ ${WQNG_REPQUOTACSVFORMAT} = True ]; then
+    echo yes\)
+else
+    echo no\)
+fi
+
 if [ ! -f warnquota-ng.conf.in ]; then
     echo warnquota-ng.conf.in not found in current directory
     exit 1
@@ -88,16 +111,16 @@ echo Preparing default config file \(using hostname: ${WQNG_HOSTNAME}\)
 if [ -f ${WQNG_CONFDIR}/warnquota-ng.conf ]; then
     echo config file already exists\! Leaving it as it is...
 else
-    tail -n +3 warnquota-ng.conf.in | sed s/WQNG_HOSTNAME/${WQNG_HOSTNAME}/g > /tmp/wqng.config.tail.tmp
+    tail -n +3 warnquota-ng.conf.in | sed s/WQNG_HOSTNAME/${WQNG_HOSTNAME}/g | sed s/WQNG_REPQUOTACSVFORMAT/${WQNG_REPQUOTACSVFORMAT}/g > /tmp/wqng.config.tail.tmp
     head -2 warnquota-ng.conf.in > /tmp/wqng.config.head.tmp
     if [ ${WQNG_CONFDIR} != /etc/warnquota-ng ]; then
-        echo 'configfiledir="'${WQNG_CONFDIR}'";' >> /tmp/wqng.config.head.tmp
+        echo 'configfiledir = "'${WQNG_CONFDIR}'";' >> /tmp/wqng.config.head.tmp
     fi
     if [ ${WQNG_RQPATH} != /usr/sbin/repquota ]; then
-        echo 'repquotapathcmd="'${WQNG_RQPATH}'";' >> /tmp/wqng.config.head.tmp
+        echo 'repquotapathcmd = "'${WQNG_RQPATH}'";' >> /tmp/wqng.config.head.tmp
     fi
     if [ ${WQNG_STATEDIR} != /var/lib/warnquota-ng ]; then
-        echo 'warnquotastatedir="'${WQNG_STATEDIR}'";' >> /tmp/wqng.config.head.tmp
+        echo 'warnquotastatedir = "'${WQNG_STATEDIR}'";' >> /tmp/wqng.config.head.tmp
     fi
     if [ `cat /tmp/wqng.config.head.tmp|wc -l` -gt 2 ]; then
         echo >> /tmp/wqng.config.head.tmp
