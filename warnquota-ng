@@ -227,17 +227,8 @@ def wqng_ldap_genconfig(user_ldapfilter):
 
     wqng_config_text = '';
     for usernamekey in users.keys():
-        if debuglevel > 1:
-            print("%s:%s:%s:%s:%s:%s:%s:%s:%s:%s"%(
-                usernamekey, users[usernamekey]['cn'],
-                users[usernamekey]['warnquotangUserEmail'], users[usernamekey]['warnquotangAdminEmail'],
-                users[usernamekey]['warnquotangWarnPercentBlocks'], users[usernamekey]['warnquotangWarnPercentInodes'],
-                users[usernamekey]['warnquotangWarnAdmin'].replace('1', 'yes').replace('0', 'no'),
-                users[usernamekey]['warnquotangAlertAdmin'].replace('1', 'yes').replace('0', 'no'),
-                users[usernamekey]['warnquotangAlertWarnUserInodes'].replace('1', 'yes').replace('0', 'no'),
-                users[usernamekey]['warnquotangMailLanguage']));
 
-        wqng_config_text += "%s:%s:%s:%s:%s:%s:%s:%s:%s:%s\n"%(
+        wqng_config_line = "%s:%s:%s:%s:%s:%s:%s:%s:%s:%s\n"%(
             usernamekey, users[usernamekey]['cn'],
             users[usernamekey]['warnquotangUserEmail'], users[usernamekey]['warnquotangAdminEmail'],
             users[usernamekey]['warnquotangWarnPercentBlocks'], users[usernamekey]['warnquotangWarnPercentInodes'],
@@ -245,6 +236,11 @@ def wqng_ldap_genconfig(user_ldapfilter):
             users[usernamekey]['warnquotangAlertAdmin'].replace('1', 'yes').replace('0', 'no'),
             users[usernamekey]['warnquotangAlertWarnUserInodes'].replace('1', 'yes').replace('0', 'no'),
             users[usernamekey]['warnquotangMailLanguage']);
+
+        if debuglevel > 1:
+            print(wqng_config_line);
+
+        wqng_config_text += wqng_config_line;
 
     return wqng_config_text
 
