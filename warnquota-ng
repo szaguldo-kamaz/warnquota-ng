@@ -24,6 +24,8 @@ Options:
 -V : print version information and exit (also --version)
 -n : trial run (no state file updates and no mails sent)
 -L : generate fs configs from LDAP directory
+-q : run repquota and update quotastate files (as root)
+-s : process quotastate files (as non-root)
 -d : increase debuglevel (also -v)""");
         sys.exit(0);
     if '-V' in sys.argv or '--version' in sys.argv:
@@ -31,6 +33,13 @@ Options:
         sys.exit(0);
     if '-n' in sys.argv:
         simulation = True;
+    if '-q' in sys.argv:
+        wqng_runmode = "repquota";
+    if '-s' in sys.argv:
+        if wqng_runmode == "repquota":
+            print("-q and -s cannot be used together");
+            sys.exit(0);
+        wqng_runmode = "quotastateprocess";
     if '-L' in sys.argv:
         wqng_runmode = 'ldapconfgen';
     debuglevel = (sys.argv.count('-d') + sys.argv.count('-v'));
@@ -884,9 +893,9 @@ syslog.openlog('warnquota-ng');
 
 wqng_parse_main_config();
 
-if wqng_runmode == 'normal':
+if wqng_runmode in [ 'normal', 'quotastateprocess' ]:
     for fs in config.warnquotafs.keys():
-        wqng_checkquota(fs, True);
+        wqng_checkquota(fs, wqng_runmode == 'normal');
 
 elif wqng_runmode == 'ldapconfgen':
     if not os.path.isfile(config.ldapsearchbinpath):
@@ -935,6 +944,15 @@ elif wqng_runmode == 'ldapconfgen':
         os.close(fsconfhandle);
 
         wqng_unlock_file(fsconflockfilepath);
+
+elif wqng_runmode == 'repquota':
+    for fs in config.warnquotafs.keys():
+        rq_lines = wqng_repquota(config.warnquotafs[fs][0], config.repquota_use_csv_format);
+        if not config.repquota_use_csv_format:
+            quotastatestring = wqng_convert_rqline_legacy_to_csv(rq_lines);
+        else:
+            quotastatestring = rq_lines;
+        wqng_write_quotastatefile(fs, quotastatestring);
 
 else:
     print("ERROR: unknown runmode! BUG?");
