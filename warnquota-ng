@@ -420,8 +420,55 @@ def wqng_unlock_file(lockfilepath):
         print("Error removing lockfile: %s . Check manually!"%(lockfilepath));
 
 
+def wqng_read_quotastatefile(fs):
 
-def checkquota(fs):
+    quotastatefilepath = config.warnquotastatedir + "/warnquota-ng.fs." + fs + ".quotastate.csv";
+
+    if wqng_is_file_locked(quotastatefilepath + ".lock"):
+        if debuglevel > 1:
+            print("Quotastate file is locked: ", quotastatefilepath + ".lock");
+        return False
+
+    try:
+        return open(quotastatefilepath, 'r').readlines();
+    except:
+        print("Something went wrong while reading quotastatefile: %s!"%(quotastatefilepath));
+        sys.exit(1);
+
+
+def wqng_write_quotastatefile(fs, quotastatestring):
+
+    quotastatefilepath = config.warnquotastatedir + "/warnquota-ng.fs." + fs + ".quotastate.csv";
+
+    wqng_lock_file(quotastatefilepath + ".lock");
+
+    try:
+        qstatehndl = open(quotastatefilepath, 'w');
+        qstatehndl.write(quotastatestring);
+        qstatehndl.close();
+    except:
+        print("Something went wrong while writing quotastatefile: %s!"%(quotastatefilepath));
+        sys.exit(1);
+
+    wqng_unlock_file(quotastatefilepath + ".lock");
+
+
+def wqng_get_systemquotastate(fs, runrepquota):
+    if runrepquota:
+        rq_lines = wqng_repquota(config.warnquotafs[fs][0], config.repquota_use_csv_format);
+        if config.repquota_use_csv_format:
+            return wqng_parse_rqline_csv(rq_lines)
+        else:
+            return wqng_parse_rqline_legacy(rq_lines)
+    else:
+        rq_lines = wqng_read_quotastatefile(config.warnquotafs[fs][0]);
+        if rq_lines == False:
+            return False
+        else:
+            return wqng_parse_rqline_csv(rq_lines)
+
+
+def wqng_checkquota(fs, runrepquota):
 
         config.warnquotauser = {};
 
@@ -514,11 +561,10 @@ def checkquota(fs):
 
                     warnquotastate[statefile_sysuid] = [statefile_firstalert, statefile_lastalert, statefile_alertcount, statefile_violationtype];
 
-        rq_lines = wqng_repquota(config.warnquotafs[fs][0], config.repquota_use_csv_format);
-        if config.repquota_use_csv_format:
-            systemquotastate = wqng_parse_rqline_csv(rq_lines);
-        else:
-            systemquotastate = wqng_parse_rqline_legacy(rq_lines);
+        systemquotastate = wqng_get_systemquotastate(fs, runrepquota);
+        if systemquotastate == False:
+            print("Could not gather systemquotastate (maybe file was locked), skipping filesystem: ", fs);
+            return
 
         alertblock = False;
         alertinode = False;
@@ -832,7 +878,7 @@ syslog.openlog('warnquota-ng');
 
 if wqng_runmode == 'normal':
     for fs in config.warnquotafs.keys():
-        checkquota(fs);
+        wqng_checkquota(fs, True);
 
 elif wqng_runmode == 'ldapconfgen':
     if not os.path.isfile(config.ldapsearchbinpath):
