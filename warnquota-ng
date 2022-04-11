@@ -350,7 +350,7 @@ def wqng_parse_rqline_csv(rq_lines_csv):
     return sysqstate
 
 
-def wqng_parse_rqline_legacy(rq_lines):
+def wqng_convert_rqline_legacy_to_csv(rq_lines):
 
     # first line is a dummy line
     rq_lines_csv = 'csv header dummy\n';
@@ -392,7 +392,11 @@ def wqng_parse_rqline_legacy(rq_lines):
     if debuglevel > 2:
         print("rq_lines_csv:", rq_lines_csv);
 
-    return wqng_parse_rqline_csv(rq_lines_csv);
+    return rq_lines_csv
+
+
+def wqng_parse_rqline_legacy(rq_lines):
+    return wqng_parse_rqline_csv(wqng_convert_rqline_legacy_to_csv(rq_lines));
 
 
 def wqng_lock_file(lockfilepath):
@@ -430,7 +434,7 @@ def wqng_read_quotastatefile(fs):
         return False
 
     try:
-        return open(quotastatefilepath, 'r').readlines();
+        return open(quotastatefilepath, 'r').read();
     except:
         print("Something went wrong while reading quotastatefile: %s!"%(quotastatefilepath));
         sys.exit(1);
@@ -443,9 +447,9 @@ def wqng_write_quotastatefile(fs, quotastatestring):
     wqng_lock_file(quotastatefilepath + ".lock");
 
     try:
-        qstatehndl = open(quotastatefilepath, 'w');
-        qstatehndl.write(quotastatestring);
-        qstatehndl.close();
+        qstatehndl = os.open(quotastatefilepath, os.O_CREAT + os.O_WRONLY + os.O_TRUNC, 0o640);
+        os.write(qstatehndl, bytes(quotastatestring, "utf-8"));
+        os.close(qstatehndl);
     except:
         print("Something went wrong while writing quotastatefile: %s!"%(quotastatefilepath));
         sys.exit(1);
@@ -461,7 +465,7 @@ def wqng_get_systemquotastate(fs, runrepquota):
         else:
             return wqng_parse_rqline_legacy(rq_lines)
     else:
-        rq_lines = wqng_read_quotastatefile(config.warnquotafs[fs][0]);
+        rq_lines = wqng_read_quotastatefile(fs);
         if rq_lines == False:
             return False
         else:
