@@ -395,12 +395,38 @@ def wqng_parse_rqline_legacy(rq_lines):
     return wqng_parse_rqline_csv(rq_lines_csv);
 
 
+def wqng_lock_file(lockfilepath):
+
+    if os.path.isfile(lockfilepath):
+        return False
+
+    try:
+        lockhandle = os.open(lockfilepath, os.O_WRONLY + os.O_CREAT, 0o600);
+    except:
+        print("Error creating lockfile: ", lockfilepath);
+        sys.exit(1);
+
+    os.close(lockhandle);
+
+
+def wqng_is_file_locked(lockfilepath):
+    return os.path.isfile(lockfilepath);
+
+
+def wqng_unlock_file(lockfilepath):
+    try:
+        os.remove(lockfilepath);
+    except:
+        print("Error removing lockfile: %s . Check manually!"%(lockfilepath));
+
+
+
 def checkquota(fs):
 
         config.warnquotauser = {};
 
         fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf.lock";
-        if os.path.isfile(fsconflockfilepath):
+        if wqng_is_file_locked(fsconflockfilepath):
             print("Lock file exist: %s, skipping filesystem: %s"%(fsconflockfilepath, fs));
             return
 
@@ -837,16 +863,9 @@ elif wqng_runmode == 'ldapconfgen':
                 sys.exit(1);
 
         fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
-        if os.path.isfile(fsconflockfilepath):
+        if not wqng_lock_file(fsconflockfilepath):
             print("Lock file exist: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
             continue
-
-        try:
-            fsconflockhandle = os.open(fsconflockfilepath, os.O_WRONLY + os.O_CREAT, 0o600);
-        except:
-            print("Error creating lockfile: ", fsconflockfilepath);
-            sys.exit(1);
-        os.close(fsconflockhandle);
 
         fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
         if os.path.isfile(fsconffilepath + ".head"):
@@ -861,10 +880,7 @@ elif wqng_runmode == 'ldapconfgen':
         os.write(fsconfhandle, bytes(wqng_ldap_genconfig(user_ldapfilter), "utf-8"));
         os.close(fsconfhandle);
 
-        try:
-            os.remove(fsconflockfilepath);
-        except:
-            print("Error removing lockfile: ", fsconflockfilepath);
+        wqng_unlock_file(fsconflockfilepath);
 
 else:
     print("ERROR: unknown runmode! BUG?");
