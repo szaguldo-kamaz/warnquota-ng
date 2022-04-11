@@ -823,62 +823,66 @@ def wqng_checkquota(fs, runrepquota):
             os.close(fsstatehandle);
 
 
+def wqng_parse_main_config():
+
+    configfile = config.configfiledir + "/warnquota-ng.conf";
+    if not os.path.isfile(configfile):
+        print("cannot open configuration file: %s!"%(configfile));
+        sys.exit(1);
+
+    try:
+    # conffile should be writable by root/trusted users only...
+        exec(open(configfile).read());
+    except:
+        print("Something is wrong with this config file (syntax error?): %s!"%(configfile));
+        sys.exit(1);
+
+    if config.hostname == '':
+        hostnamehandle = os.popen('/bin/hostname', 'r');
+        config.hostname = hostnamehandle.read()[:-1];
+        exitval = hostnamehandle.close();
+        if exitval != None:
+            print("Error getting hostname.");
+            sys.exit(3);
+
+    if config.defaultadminmailto == '':
+        config.defaultadminmailto = "quotaadmin@" + hostname;
+    if config.inodealertoverridemailto == '':
+        config.inodealertoverridemailto = "quotaadmin@" + hostname;
+    if config.mailfrom['hu'] == '':
+        config.mailfrom['hu'] = ["Hosting Ügyfélszolgálat", "ugyfelszolgalat@" + hostname];
+    if config.mailfrom['en'] == '':
+        config.mailfrom['en'] = ["Hosting Support", "support@" + hostname];
+    if config.mailbody_signature['hu'] == '':
+        config.mailbody_signature['hu'] = 'Üdvözlettel:\nHosting Ügyfélszolgálat\n\n' + hostname + '\n';
+    if config.mailbody_signature['en'] == '':
+        config.mailbody_signature['en'] = 'Hosting Support Team\n\n' + hostname + '\n';
+    if config.support_contactmail_for_user['hu'] == '':
+        config.support_contactmail_for_user['hu'] = "info@" + hostname;
+    if config.support_contactmail_for_user['en'] == '':
+        config.support_contactmail_for_user['en'] = "info@" + hostname;
+    if config.support_contactmail_for_admin['hu'] == '':
+        config.support_contactmail_for_admin['hu'] = "info@" + hostname;
+    if config.support_contactmail_for_admin['en'] == '':
+        config.support_contactmail_for_admin['en'] = "info@" + hostname;
+
+    config.mailbody_quotaok_user2['hu'] = config.mailbody_quotaok_user2['hu'] + '\n\n' + config.mailbody_signature['hu'];
+    config.mailbody_quotaok_admin2['hu'] = config.mailbody_quotaok_admin2['hu'] + '\n\n' + config.mailbody_signature['hu'];
+    config.mailbody_quotaok_user2['en'] = config.mailbody_quotaok_user2['en'] + '\n\n' + config.mailbody_signature['en'];
+    config.mailbody_quotaok_admin2['en'] = config.mailbody_quotaok_admin2['en'] + '\n\n' + config.mailbody_signature['en'];
+
+    config.mailbody_overquota_footer_user['hu'] = config.mailbody_overquota_footer_user1['hu'] + config.support_contactmail_for_user['hu'] + config.mailbody_overquota_footer_user2['hu'] + config.support_contactphone_for_user['hu'] + config.mailbody_overquota_footer_user3['hu'] + '\n\n' + config.mailbody_signature['hu'];
+    config.mailbody_overquota_footer_user['en'] = config.mailbody_overquota_footer_user1['en'] + config.support_contactmail_for_user['en'] + config.mailbody_overquota_footer_user2['en'] + config.support_contactphone_for_user['en'] + config.mailbody_overquota_footer_user3['en'] + '\n\n' + config.mailbody_signature['en'];
+    config.mailbody_overquota_footer_admin['hu'] = config.mailbody_overquota_footer_admin1['hu'] + config.support_contactmail_for_admin['hu'] + config.mailbody_overquota_footer_admin2['hu'] + config.support_contactphone_for_admin['hu'] + config.mailbody_overquota_footer_admin3['hu'] + '\n\n' + config.mailbody_signature['hu'];
+    config.mailbody_overquota_footer_admin['en'] = config.mailbody_overquota_footer_admin1['en'] + config.support_contactmail_for_admin['en'] + config.mailbody_overquota_footer_admin2['en'] + config.support_contactphone_for_admin['en'] + config.mailbody_overquota_footer_admin3['en'] + '\n\n' + config.mailbody_signature['en'];
+
 
 
 ### the weekend starts here ###
 
-configfile = config.configfiledir + "/warnquota-ng.conf";
-if not os.path.isfile(configfile):
-    print("cannot open configuration file: %s!"%(configfile));
-    sys.exit(1);
-
-try:
-# this could be better, but maybe ok, if conffile is writable by root/trusted users only, which should be the case...
-    exec(open(configfile).read());
-except:
-    print("Something is wrong with this config file (syntax error?): %s!"%(configfile));
-    sys.exit(1);
-
-if config.hostname == '':
-    hostnamehandle = os.popen('/bin/hostname', 'r');
-    config.hostname = hostnamehandle.read()[:-1];
-    exitval = hostnamehandle.close();
-    if exitval != None:
-        print("Error getting hostname.");
-        sys.exit(3);
-
-if config.defaultadminmailto == '':
-    config.defaultadminmailto = "quotaadmin@" + hostname;
-if config.inodealertoverridemailto == '':
-    config.inodealertoverridemailto = "quotaadmin@" + hostname;
-if config.mailfrom['hu'] == '':
-    config.mailfrom['hu'] = ["Hosting Ügyfélszolgálat", "ugyfelszolgalat@" + hostname];
-if config.mailfrom['en'] == '':
-    config.mailfrom['en'] = ["Hosting Support", "support@" + hostname];
-if config.mailbody_signature['hu'] == '':
-    config.mailbody_signature['hu'] = 'Üdvözlettel:\nHosting Ügyfélszolgálat\n\n' + hostname + '\n';
-if config.mailbody_signature['en'] == '':
-    config.mailbody_signature['en'] = 'Hosting Support Team\n\n' + hostname + '\n';
-if config.support_contactmail_for_user['hu'] == '':
-    config.support_contactmail_for_user['hu'] = "info@" + hostname;
-if config.support_contactmail_for_user['en'] == '':
-    config.support_contactmail_for_user['en'] = "info@" + hostname;
-if config.support_contactmail_for_admin['hu'] == '':
-    config.support_contactmail_for_admin['hu'] = "info@" + hostname;
-if config.support_contactmail_for_admin['en'] == '':
-    config.support_contactmail_for_admin['en'] = "info@" + hostname;
-
-config.mailbody_quotaok_user2['hu'] = config.mailbody_quotaok_user2['hu'] + '\n\n' + config.mailbody_signature['hu'];
-config.mailbody_quotaok_admin2['hu'] = config.mailbody_quotaok_admin2['hu'] + '\n\n' + config.mailbody_signature['hu'];
-config.mailbody_quotaok_user2['en'] = config.mailbody_quotaok_user2['en'] + '\n\n' + config.mailbody_signature['en'];
-config.mailbody_quotaok_admin2['en'] = config.mailbody_quotaok_admin2['en'] + '\n\n' + config.mailbody_signature['en'];
-
-config.mailbody_overquota_footer_user['hu'] = config.mailbody_overquota_footer_user1['hu'] + config.support_contactmail_for_user['hu'] + config.mailbody_overquota_footer_user2['hu'] + config.support_contactphone_for_user['hu'] + config.mailbody_overquota_footer_user3['hu'] + '\n\n' + config.mailbody_signature['hu'];
-config.mailbody_overquota_footer_user['en'] = config.mailbody_overquota_footer_user1['en'] + config.support_contactmail_for_user['en'] + config.mailbody_overquota_footer_user2['en'] + config.support_contactphone_for_user['en'] + config.mailbody_overquota_footer_user3['en'] + '\n\n' + config.mailbody_signature['en'];
-config.mailbody_overquota_footer_admin['hu'] = config.mailbody_overquota_footer_admin1['hu'] + config.support_contactmail_for_admin['hu'] + config.mailbody_overquota_footer_admin2['hu'] + config.support_contactphone_for_admin['hu'] + config.mailbody_overquota_footer_admin3['hu'] + '\n\n' + config.mailbody_signature['hu'];
-config.mailbody_overquota_footer_admin['en'] = config.mailbody_overquota_footer_admin1['en'] + config.support_contactmail_for_admin['en'] + config.mailbody_overquota_footer_admin2['en'] + config.support_contactphone_for_admin['en'] + config.mailbody_overquota_footer_admin3['en'] + '\n\n' + config.mailbody_signature['en'];
-
 syslog.openlog('warnquota-ng');
+
+wqng_parse_main_config();
 
 if wqng_runmode == 'normal':
     for fs in config.warnquotafs.keys():
