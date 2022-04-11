@@ -74,9 +74,9 @@ class config:
     support_contactphone_for_user = {};
     support_contactphone_for_admin = {};
 
-    supportedlanguages = ["hu", "en"];
-    configfiledir = "/etc/warnquota-ng";
-    configbackuppath = "/var/backups/";
+    supportedlanguages = ['hu', 'en'];
+    configfiledir = '/etc/warnquota-ng';
+    configbackuppath = '/var/backups';
     hostname = '';
 
     # defaults
@@ -107,7 +107,7 @@ class config:
     ldap_fsconf_perm = 0o640;
 
     knownusersonly = False;
-    defaultlang = "en";
+    defaultlang = 'en';
     defaultsendinodetouser = False;
     hostname = '';
     defaultadminmailto = '';
@@ -427,7 +427,7 @@ def checkquota(fs):
 
         fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf.lock";
         if wqng_is_file_locked(fsconflockfilepath):
-            print("Lock file exist: %s, skipping filesystem: %s"%(fsconflockfilepath, fs));
+            print("Lock file exists: %s, skipping filesystem: %s"%(fsconflockfilepath, fs));
             return
 
         fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf";
@@ -465,11 +465,11 @@ def checkquota(fs):
                     fscfg_notifyadminpercentage = fsconffields[6] in ["True", "true", "1", "On", "on", "Yes", "yes"];
                     fscfg_notifyadmin = fsconffields[7] in ["True", "true", "1", "On", "on", "Yes", "yes"];
                     fscfg_notifyuserinode = fsconffields[8] in ["True", "true", "1", "On", "on", "Yes", "yes"];
-                    if fsconffields[9] in ["en", "hu"]:
+                    if fsconffields[9] in ['en', 'hu']:
                         fscfg_lang = fsconffields[9];
                     else:
                         print("Unsupported language setting in fsconfig file line %s, skipping (value set 'en'). Bad line: %s"%(fsconflinecount, fsconfline));
-                        fscfg_lang = "en";
+                        fscfg_lang = 'en';
                     config.warnquotauser[fscfg_sysuid] = [fscfg_uid, fscfg_useremail, fscfg_adminemail, fscfg_blockpercent, fscfg_inodepercent, fscfg_notifyadminpercentage, fscfg_notifyadmin, fscfg_notifyuserinode, fscfg_lang];
 
         warnquotastatenew = {};
@@ -864,7 +864,7 @@ elif wqng_runmode == 'ldapconfgen':
 
         fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
         if not wqng_lock_file(fsconflockfilepath):
-            print("Lock file exist: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
+            print("Cannot lock: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
             continue
 
         fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
