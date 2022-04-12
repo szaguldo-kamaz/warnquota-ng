@@ -276,6 +276,12 @@ def wqng_ldap_gen_conf_files():
             print("user ldapfilter for %s: %s"%(wqngfs, user_ldapfilter));
 
         fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf";
+
+        if simulation:
+            if debuglevel > 0:
+                print("Not updating config file (%s) from ldap dir in simulation mode."%(fsconffilepath));
+            continue
+
         if os.path.isfile(fsconffilepath):
             try:
                 shutil.copy2(fsconffilepath, config.configbackuppath);
@@ -502,6 +508,11 @@ def wqng_read_quotastatefile(fs):
 
 
 def wqng_write_quotastatefile(fs, quotastatestring):
+
+    if simulation:
+        if debuglevel > 0:
+            print("Not updating quotastat.csv in simulation mode.");
+        return
 
     quotastatefilepath = config.warnquotastatedir + "/warnquota-ng.fs." + fs + ".quotastate.csv";
 
@@ -959,7 +970,8 @@ elif wqng_runmode == 'repquota':
             quotastatestring = wqng_convert_rqline_legacy_to_csv(rq_lines);
         else:
             quotastatestring = rq_lines;
-        wqng_write_quotastatefile(fs, quotastatestring);
+        if not simulation:
+            wqng_write_quotastatefile(fs, quotastatestring);
 
 else:
     print("ERROR: unknown runmode! BUG?");
