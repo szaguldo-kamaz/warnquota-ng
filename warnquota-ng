@@ -187,7 +187,7 @@ class config:
     mailbody_quotaok_admin2['en'] = 'is below quota again!';
 
 
-def wqng_ldap_genconfig(user_ldapfilter):
+def wqng_ldap_gen_config_text(user_ldapfilter):
 
     if (user_ldapfilter != None):
         if (user_ldapfilter[0] == '(' and user_ldapfilter[-1] != ')') or (user_ldapfilter[0] != '(' and user_ldapfilter[-1] == ')'):
@@ -252,6 +252,56 @@ def wqng_ldap_genconfig(user_ldapfilter):
         wqng_config_text += wqng_config_line;
 
     return wqng_config_text
+
+
+def wqng_ldap_gen_conf_files():
+
+    if not os.path.isfile(config.ldapsearchbinpath):
+        print("Cannot find ldapsearch at: %s"%(config.ldapsearchbinpath));
+        sys.exit(1);
+
+    if (config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] != ')') or (config.mainldapfilter[0] != '(' and config.mainldapfilter[-1] == ')'):
+        print("Syntax error in mainldapfilter, parentheses are not paired: %s"%(config.mainldapfilter))
+        sys.exit(1);
+
+    if config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] == ')':
+        config.mainldapfilter = config.mainldapfilter[1:-1];
+
+    for wqngfs in config.warnquotafs.keys():
+        if len(config.warnquotafs[wqngfs]) == 3:
+            user_ldapfilter = config.warnquotafs[wqngfs][2];
+        else:
+            user_ldapfilter = None;
+        if debuglevel > 0:
+            print("user ldapfilter for %s: %s"%(wqngfs, user_ldapfilter));
+
+        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf";
+        if os.path.isfile(fsconffilepath):
+            try:
+                shutil.copy2(fsconffilepath, config.configbackuppath);
+            except:
+                print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.configbackuppath);
+                sys.exit(1);
+
+        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
+        if not wqng_lock_file(fsconflockfilepath):
+            print("Cannot lock: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
+            continue
+
+        fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
+        if os.path.isfile(fsconffilepath + ".head"):
+            if debuglevel > 0:
+                print("Using .head file: ", fsconffilepath + ".head");
+            try:
+                fsconfigheaddata = open(fsconffilepath + ".head", "rt").read();
+            except:
+                print("Cannot read .head file: ", fsconffilepath + ".head");
+                sys.exit(1);
+            os.write(fsconfhandle, bytes(fsconfigheaddata, "utf-8"));
+        os.write(fsconfhandle, bytes(wqng_ldap_gen_config_text(user_ldapfilter), "utf-8"));
+        os.close(fsconfhandle);
+
+        wqng_unlock_file(fsconflockfilepath);
 
 
 def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
@@ -900,52 +950,7 @@ if wqng_runmode in [ 'normal', 'quotastateprocess' ]:
         wqng_checkquota(fs, wqng_runmode == 'normal');
 
 elif wqng_runmode == 'ldapconfgen':
-    if not os.path.isfile(config.ldapsearchbinpath):
-        print("Cannot find ldapsearch at: %s"%(config.ldapsearchbinpath));
-        sys.exit(1);
-
-    if (config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] != ')') or (config.mainldapfilter[0] != '(' and config.mainldapfilter[-1] == ')'):
-        print("Syntax error in mainldapfilter, parentheses are not paired: %s"%(config.mainldapfilter))
-        sys.exit(1);
-
-    if config.mainldapfilter[0] == '(' and config.mainldapfilter[-1] == ')':
-        config.mainldapfilter = config.mainldapfilter[1:-1];
-
-    for wqngfs in config.warnquotafs.keys():
-        if len(config.warnquotafs[wqngfs]) == 3:
-            user_ldapfilter = config.warnquotafs[wqngfs][2];
-        else:
-            user_ldapfilter = None;
-        if debuglevel > 0:
-            print("user ldapfilter for %s: %s"%(wqngfs, user_ldapfilter));
-
-        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf";
-        if os.path.isfile(fsconffilepath):
-            try:
-                shutil.copy2(fsconffilepath, config.configbackuppath);
-            except:
-                print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.configbackuppath);
-                sys.exit(1);
-
-        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
-        if not wqng_lock_file(fsconflockfilepath):
-            print("Cannot lock: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
-            continue
-
-        fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
-        if os.path.isfile(fsconffilepath + ".head"):
-            if debuglevel > 0:
-                print("Using .head file: ", fsconffilepath + ".head");
-            try:
-                fsconfigheaddata = open(fsconffilepath + ".head", "rt").read();
-            except:
-                print("Cannot read .head file: ", fsconffilepath + ".head");
-                sys.exit(1);
-            os.write(fsconfhandle, bytes(fsconfigheaddata, "utf-8"));
-        os.write(fsconfhandle, bytes(wqng_ldap_genconfig(user_ldapfilter), "utf-8"));
-        os.close(fsconfhandle);
-
-        wqng_unlock_file(fsconflockfilepath);
+     wqng_ldap_gen_conf_files();
 
 elif wqng_runmode == 'repquota':
     for fs in config.warnquotafs.keys():
