@@ -158,9 +158,9 @@ else
 fi
 
 echo Copying sample fs config
-cp -f warnquota-ng.fs.SAMPLE.conf ${WQNG_CONFDIR}/
+cp -f warnquota-ng.fs.SAMPLE.conf ${WQNG_CONFDIR}/fs/
 if [ $? -ne 0 ]; then
-    echo ERROR while copying warnquota-ng.fs.SAMPLE.conf to ${WQNG_CONFDIR}/
+    echo ERROR while copying warnquota-ng.fs.SAMPLE.conf to ${WQNG_CONFDIR}/fs/
     exit 2
 fi
 
