@@ -91,6 +91,10 @@ if [ -d $WQNG_STATEDIR ]; then
     echo state directory $WQNG_STATEDIR already exists.
 else
     mkdir $WQNG_STATEDIR
+    if [ $? -ne 0 ]; then
+        echo ERROR creating state config dir: $WQNG_STATEDIR
+        exit 2
+    fi
 fi
 
 echo Creating warnquota-ng system user and group: $WQNG_USERNAME
@@ -186,7 +190,7 @@ if [ $? -ne 0 ]; then
     echo WARNING\! Cannot set permissions on ${WQNG_BINARYPATH}/warnquota-ng
 fi
 
-echo Installing man page
+echo Installing man page \(may take some time\)
 if [ ! -f warnquota-ng.8 ]; then
     echo man page warnquota-ng.8 not found in current directory. non-fatal, but there will be no man page for warnquota-ng.
 else
