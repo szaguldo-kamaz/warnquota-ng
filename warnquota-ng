@@ -291,20 +291,26 @@ def wqng_ldap_gen_conf_files():
                 print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.configbackuppath);
                 sys.exit(1);
 
+        fsconfigheaddata = '';
+        if os.path.isfile(fsconffilepath + ".head"):
+            if debuglevel > 0:
+                print("Using .head file: ", fsconffilepath + ".head");
+            if not os.access(fsconffilepath + ".head", os.R_OK):
+                print("Cannot access .head file: ", fsconffilepath + ".head");
+                sys.exit(1);
+            try:
+                fsconfigheaddata = open(fsconffilepath + ".head", "rt").read();
+            except:
+                print("Error while reading .head file: ", fsconffilepath + ".head");
+                sys.exit(1);
+
         fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
         if not wqng_lock_file(fsconflockfilepath):
             print("Cannot lock: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
             continue
 
         fsconfhandle = os.open(fsconffilepath, os.O_WRONLY + os.O_TRUNC + os.O_CREAT, config.ldap_fsconf_perm);
-        if os.path.isfile(fsconffilepath + ".head"):
-            if debuglevel > 0:
-                print("Using .head file: ", fsconffilepath + ".head");
-            try:
-                fsconfigheaddata = open(fsconffilepath + ".head", "rt").read();
-            except:
-                print("Cannot read .head file: ", fsconffilepath + ".head");
-                sys.exit(1);
+        if fsconfigheaddata != '':
             os.write(fsconfhandle, bytes(fsconfigheaddata, "utf-8"));
         os.write(fsconfhandle, bytes(wqng_ldap_gen_config_text(user_ldapfilter), "utf-8"));
         os.close(fsconfhandle);
