@@ -4,7 +4,7 @@ warnquota-ng \- notify users and admins about reaching quota limits
 .SH SYNOPSIS
 .B warnquota-ng
 [
-.B \-nLvdVh
+.B \-nLqsvdVh
 ]
 .SH DESCRIPTION
 .B warnquota-ng
@@ -17,6 +17,12 @@ Trial run. Quota limits and previous state information will be processed, but no
 .TP
 .BR \-L
 Gather user configuration from LDAP and generate FS configuration files for each monitored filesystem.
+.TP
+.BR \-q
+Run repquota and update quotastate files (processed later using -s) in state dir (as root).
+.TP
+.BR \-s
+Process previously generated (using -q) quotastate files from state dir (as non-root).
 .TP
 .BR \-v , " \-d"
 Increase verbosity.
@@ -32,7 +38,7 @@ Display help text and exit.
 .B /etc/warnquota-ng/warnquota-ng.conf
 main configuration file
 .TP
-.B /etc/warnquota-ng/warnquota-ng.fs.*.conf
+.B /etc/warnquota-ng/fs/warnquota-ng.fs.*.conf
 configuration files for the monitored filesystems
 .TP
 .B /var/lib/warnquota-ng/warnquota-ng.fs.*.state
@@ -40,6 +46,9 @@ notification state files
 .TP
 .B /etc/cron.d/warnquota-ng
 cron configuration file for warnquota-ng
+.TP
+.B /var/backups/warnquota-ng
+directory where fs configuration files are backed up when using -L
 .PD
 .SH "SEE ALSO"
 .BR quota (1),
