@@ -3,6 +3,10 @@
 # system hostname is used if undefined (used only for constructing email addrs)
 config.hostname = "WQNG_HOSTNAME";
 
+# name of the user and group used for non-root operations (typically "wqnguser")
+config.username = "WQNG_USERNAME";
+config.groupname = "WQNG_USERNAME";
+
 # currently 6 different time intervals are supported only (in seconds)
 config.alertintervals = [7200, 43200, 86400, 259200, 604800]; # send reminders after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
 

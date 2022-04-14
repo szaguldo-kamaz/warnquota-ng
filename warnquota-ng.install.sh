@@ -13,6 +13,7 @@ WQNG_CONFDIR=/etc/warnquota-ng
 # this needs to be on permanent storage (so /var/run, /tmp ... won't do)
 WQNG_STATEDIR=/var/lib/warnquota-ng
 WQNG_HOSTNAME=`hostname`
+WQNG_USERNAME=wqnguser
 WQNG_RQPATH=`which repquota`
 
 if [ `id -u` -ne 0 ]; then
@@ -95,15 +96,28 @@ if [ -d $WQNG_STATEDIR ]; then
 else
     mkdir $WQNG_STATEDIR
 fi
+
+echo Creating warnquota-ng system user and group: $WQNG_USERNAME
+adduser --system --group --disabled-login --no-create-home --home $WQNG_STATEDIR $WQNG_USERNAME
 if [ $? -ne 0 ]; then
-    echo ERROR state config dir: $WQNG_STATEDIR
+    echo ERROR creating system user: $WQNG_USERNAME
     exit 2
 fi
 
 echo Setting permissions on config and state directories
-chmod 700 $WQNG_CONFDIR $WQNG_STATEDIR
+chown ${WQNG_USERNAME}:${WQNG_USERNAME} $WQNG_STATEDIR
 if [ $? -ne 0 ]; then
-    echo ERROR setting permissions on config/state dirs: $WQNG_CONFDIR $WQNG_STATEDIR
+    echo ERROR setting owner on state dir: $WQNG_STATEDIR
+    exit 2
+fi
+chmod 750 $WQNG_CONFDIR
+if [ $? -ne 0 ]; then
+    echo ERROR setting permissions on config dir: $WQNG_CONFDIR
+    exit 2
+fi
+chmod 700 $WQNG_STATEDIR
+if [ $? -ne 0 ]; then
+    echo ERROR setting permissions on state dir: $WQNG_STATEDIR
     exit 2
 fi
 
@@ -111,7 +125,7 @@ echo Preparing default config file \(using hostname: ${WQNG_HOSTNAME}\)
 if [ -f ${WQNG_CONFDIR}/warnquota-ng.conf ]; then
     echo config file already exists\! Leaving it as it is...
 else
-    tail -n +3 warnquota-ng.conf.in | sed s/WQNG_HOSTNAME/${WQNG_HOSTNAME}/g | sed s/WQNG_REPQUOTACSVFORMAT/${WQNG_REPQUOTACSVFORMAT}/g > /tmp/wqng.config.tail.tmp
+    tail -n +3 warnquota-ng.conf.in | sed s/WQNG_HOSTNAME/${WQNG_HOSTNAME}/g | sed s/WQNG_USERNAME/${WQNG_USERNAME}/g | sed s/WQNG_REPQUOTACSVFORMAT/${WQNG_REPQUOTACSVFORMAT}/g > /tmp/wqng.config.tail.tmp
     head -2 warnquota-ng.conf.in > /tmp/wqng.config.head.tmp
     if [ ${WQNG_CONFDIR} != /etc/warnquota-ng ]; then
         echo 'configfiledir = "'${WQNG_CONFDIR}'";' >> /tmp/wqng.config.head.tmp
@@ -130,7 +144,12 @@ else
         echo ERROR while preparing configuration file: ${WQNG_CONFDIR}/warnquota-ng.conf
         exit 2
     fi
-    chmod 00644 ${WQNG_CONFDIR}/warnquota-ng.conf
+    chgrp ${WQNG_USERNAME} ${WQNG_CONFDIR}/warnquota-ng.conf
+    if [ $? -ne 0 ]; then
+        echo ERROR while setting group on configuration file: ${WQNG_CONFDIR}/warnquota-ng.conf
+        exit 2
+    fi
+    chmod 00640 ${WQNG_CONFDIR}/warnquota-ng.conf
     if [ $? -ne 0 ]; then
         echo ERROR while setting permissions on configuration file: ${WQNG_CONFDIR}/warnquota-ng.conf
         exit 2
@@ -185,7 +204,7 @@ echo Setting up cron
 if [ -f /etc/cron.d/warnquota-ng ]; then
     echo crontab already exists\! Leaving it as it is...
 else
-    cp warnquota-ng.crontab /etc/cron.d/warnquota-ng
+    cat warnquota-ng.crontab | sed s/WQNG_USERNAME/${WQNG_USERNAME}/g > /etc/cron.d/warnquota-ng
     if [ $? -ne 0 ]; then
         echo ERROR while preparing crontab \(/etc/cron.d/warnquota-ng\)
         exit 2

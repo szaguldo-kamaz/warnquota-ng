@@ -7,7 +7,7 @@
 # david.vincze@webcode.hu
 #
 
-import sys, os, shutil, time, syslog, smtplib, email
+import sys, os, pwd, grp, shutil, time, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
@@ -87,6 +87,8 @@ class config:
     configfiledir = '/etc/warnquota-ng';
     configbackuppath = '/var/backups';
     hostname = '';
+    username = 'wqnguser';
+    groupname = 'wqnguser';
 
     # defaults
     repquotapathcmd = '/usr/sbin/repquota';
@@ -520,6 +522,7 @@ def wqng_write_quotastatefile(fs, quotastatestring):
 
     try:
         qstatehndl = os.open(quotastatefilepath, os.O_CREAT + os.O_WRONLY + os.O_TRUNC, 0o640);
+        os.fchown(qstatehndl, -1, config.groupid);
         os.write(qstatehndl, bytes(quotastatestring, "utf-8"));
         os.close(qstatehndl);
     except:
@@ -916,6 +919,23 @@ def wqng_parse_main_config():
         if exitval != None:
             print("Error getting hostname.");
             sys.exit(3);
+
+    if config.username == '':
+        config.username = "wqnguser";
+
+    try:
+        config.userid = pwd.getpwnam(config.username).pw_uid;
+    except:
+        print("User does not exist: ", config.username);
+        sys.exit(3);
+
+    if config.groupname == '':
+        config.groupname = "wqnguser";
+    try:
+        config.groupid = grp.getgrnam(config.groupname).gr_gid;
+    except:
+        print("Group does not exist: ", config.groupname);
+        sys.exit(3);
 
     if config.defaultadminmailto == '':
         config.defaultadminmailto = "quotaadmin@" + hostname;

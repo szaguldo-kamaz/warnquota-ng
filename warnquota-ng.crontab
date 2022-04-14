@@ -1,5 +1,8 @@
-*/5 * * * *	root	/usr/sbin/warnquota-ng
+WQNG_USERNAME
+4,9,14,19,24,29,34,39,44,49,54,59 * * * *	root	/usr/sbin/warnquota-ng -q
+*/5 * * * *	WQNG_USERNAME	/usr/sbin/warnquota-ng -s
 # to force UTF-8 locale use this line:
-#*/5 * * * *	root	env LC_ALL=en_US.UTF-8 /usr/sbin/warnquota-ng
+#4,9,14,19,24,29,34,39,44,49,54,59 * * * *	root	env LC_ALL=en_US.UTF-8 /usr/sbin/warnquota-ng -q
+#*/5 * * * *	WQNG_USERNAME	env LC_ALL=en_US.UTF-8 /usr/sbin/warnquota-ng -s
 # Regen fs configs from LDAP
 #11 4 * * *	root	/usr/sbin/warnquota-ng -L
