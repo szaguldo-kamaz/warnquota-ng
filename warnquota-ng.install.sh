@@ -106,9 +106,19 @@ if [ $? -ne 0 ]; then
     echo ERROR setting owner on state dir: $WQNG_STATEDIR
     exit 2
 fi
+chgrp $WQNG_USERNAME $WQNG_CONFDIR ${WQNG_CONFDIR}/fs
+if [ $? -ne 0 ]; then
+    echo ERROR setting group owner on config dirs: $WQNG_CONFDIR ${WQNG_CONFDIR}/fs
+    exit 2
+fi
 chmod 750 $WQNG_CONFDIR
 if [ $? -ne 0 ]; then
     echo ERROR setting permissions on config dir: $WQNG_CONFDIR
+    exit 2
+fi
+chmod 770 ${WQNG_CONFDIR}/fs
+if [ $? -ne 0 ]; then
+    echo ERROR setting permissions on config dir: ${WQNG_CONFDIR}/fs
     exit 2
 fi
 chmod 700 $WQNG_STATEDIR
