@@ -200,6 +200,17 @@ if [ $? -ne 0 ]; then
     echo ERROR while copying warnquota-ng.fs.SAMPLE.conf to ${WQNG_CONFDIR}/fs/
     exit 2
 fi
+echo Setting permissions on sample fs config
+chgrp $WQNG_USERNAME ${WQNG_CONFDIR}/fs/warnquota-ng.fs.SAMPLE.conf
+if [ $? -ne 0 ]; then
+    echo ERROR setting group owner on sample fs config: ${WQNG_CONFDIR}/fs/warnquota-ng.fs.SAMPLE.conf
+    exit 2
+fi
+chmod 640 ${WQNG_CONFDIR}/fs/warnquota-ng.fs.SAMPLE.conf
+if [ $? -ne 0 ]; then
+    echo ERROR setting permissions on sample fs config: ${WQNG_CONFDIR}/fs/warnquota-ng.fs.SAMPLE.conf
+    exit 2
+fi
 
 echo Installing executable
 echo \#\!${PYTHONBINPATH} > ${WQNG_BINARYPATH}/warnquota-ng
