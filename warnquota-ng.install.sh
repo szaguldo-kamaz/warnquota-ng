@@ -82,13 +82,9 @@ if [ ! -f warnquota-ng ]; then
 fi
 
 echo Creating config and state directories: $WQNG_CONFDIR $WQNG_STATEDIR
-if [ -d $WQNG_CONFDIR ]; then
-    echo config directory $WQNG_CONFDIR already exists.
-else
-    mkdir $WQNG_CONFDIR
-fi
+mkdir -p ${WQNG_CONFDIR}/fs
 if [ $? -ne 0 ]; then
-    echo ERROR creating config dir: $WQNG_CONFDIR
+    echo ERROR creating config dirs: $WQNG_CONFDIR and ${WQNG_CONFDIR}/fs
     exit 2
 fi
 if [ -d $WQNG_STATEDIR ]; then
