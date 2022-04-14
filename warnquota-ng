@@ -277,7 +277,7 @@ def wqng_ldap_gen_conf_files():
         if debuglevel > 0:
             print("user ldapfilter for %s: %s"%(wqngfs, user_ldapfilter));
 
-        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf";
+        fsconffilepath = config.configfiledir + "/fs/warnquota-ng.fs." + wqngfs + ".conf";
 
         if simulation:
             if debuglevel > 0:
@@ -304,7 +304,7 @@ def wqng_ldap_gen_conf_files():
                 print("Error while reading .head file: ", fsconffilepath + ".head");
                 sys.exit(1);
 
-        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + wqngfs + ".conf.lock";
+        fsconflockfilepath = config.configfiledir + "/fs/warnquota-ng.fs." + wqngfs + ".conf.lock";
         if not wqng_lock_file(fsconflockfilepath):
             print("Cannot lock: %s, skipping fs conf gen for fs: %s"%(fsconflockfilepath, wqngfs));
             continue
@@ -557,12 +557,12 @@ def wqng_checkquota(fs, runrepquota):
 
         config.warnquotauser = {};
 
-        fsconflockfilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf.lock";
+        fsconflockfilepath = config.configfiledir + "/fs/warnquota-ng.fs." + fs + ".conf.lock";
         if wqng_is_file_locked(fsconflockfilepath):
             print("Lock file exists: %s, skipping filesystem: %s"%(fsconflockfilepath, fs));
             return
 
-        fsconffilepath = config.configfiledir + "/warnquota-ng.fs." + fs + ".conf";
+        fsconffilepath = config.configfiledir + "/fs/warnquota-ng.fs." + fs + ".conf";
         if os.path.isfile(fsconffilepath):
             try:
                 fsconflines = open(fsconffilepath).readlines();
