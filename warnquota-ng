@@ -85,7 +85,6 @@ class config:
 
     supportedlanguages = ['hu', 'en'];
     configfiledir = '/etc/warnquota-ng';
-    configbackuppath = '/var/backups';
     hostname = '';
     username = 'wqnguser';
     groupname = 'wqnguser';
@@ -94,6 +93,7 @@ class config:
     repquotapathcmd = '/usr/sbin/repquota';
     # this needs to be on permanent storage (so /var/run, /tmp ... won't do)
     warnquotastatedir = '/var/lib/warnquota-ng';
+    backupdir = '/var/backups/warnquota-ng';
     croninterval = 300; # 5 mins
     alertintervals = [7200, 43200, 86400, 259200, 604800]; # reminders will be sent after: 2 hours, 12 hours, 24 hours, 3 days, 7 days
     warnquotafs = { "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':'Email storage space'} ],
@@ -286,9 +286,9 @@ def wqng_ldap_gen_conf_files():
 
         if os.path.isfile(fsconffilepath):
             try:
-                shutil.copy2(fsconffilepath, config.configbackuppath);
+                shutil.copy2(fsconffilepath, config.backupdir);
             except:
-                print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.configbackuppath);
+                print("Cannot backup old fsconfig: %s -> %s", fsconffilepath, config.backupdir);
                 sys.exit(1);
 
         fsconfigheaddata = '';

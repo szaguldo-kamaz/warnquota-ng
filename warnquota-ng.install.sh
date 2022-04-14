@@ -12,6 +12,7 @@ WQNG_BINARYPATH=/usr/sbin
 WQNG_CONFDIR=/etc/warnquota-ng
 # this needs to be on permanent storage (so /var/run, /tmp ... won't do)
 WQNG_STATEDIR=/var/lib/warnquota-ng
+WQNG_BACKUPDIR=/var/backups/warnquota-ng
 WQNG_HOSTNAME=`hostname`
 WQNG_USERNAME=wqnguser
 WQNG_RQPATH=`which repquota`
@@ -97,6 +98,17 @@ else
     fi
 fi
 
+echo Creating backup directory: $WQNG_BACKUPDIR
+if [ -d $WQNG_BACKUPDIR ]; then
+    echo backup directory $WQNG_BACKUPDIR already exists.
+else
+    mkdir $WQNG_BACKUPDIR
+    if [ $? -ne 0 ]; then
+        echo ERROR creating backup dir: $WQNG_BACKUPDIR
+        exit 2
+    fi
+fi
+
 echo Creating warnquota-ng system user and group: $WQNG_USERNAME
 adduser --system --group --disabled-login --no-create-home --home $WQNG_STATEDIR $WQNG_USERNAME
 if [ $? -ne 0 ]; then
@@ -131,6 +143,18 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
+echo Setting permissions on backup directory
+chgrp $WQNG_USERNAME $WQNG_BACKUPDIR
+if [ $? -ne 0 ]; then
+    echo ERROR setting group owner on backup dir: $WQNG_BACKUPDIR
+    exit 2
+fi
+chmod 770 $WQNG_BACKUPDIR
+if [ $? -ne 0 ]; then
+    echo ERROR setting permissions on config dir: $WQNG_BACKUPDIR
+    exit 2
+fi
+
 echo Preparing default config file \(using hostname: ${WQNG_HOSTNAME}\)
 if [ -f ${WQNG_CONFDIR}/warnquota-ng.conf ]; then
     echo config file already exists\! Leaving it as it is...
@@ -145,6 +169,9 @@ else
     fi
     if [ ${WQNG_STATEDIR} != /var/lib/warnquota-ng ]; then
         echo 'warnquotastatedir = "'${WQNG_STATEDIR}'";' >> /tmp/wqng.config.head.tmp
+    fi
+    if [ ${WQNG_BACKUPDIR} != /var/backups/warnquota-ng ]; then
+        echo 'backupdir = "'${WQNG_BACKUPDIR}'";' >> /tmp/wqng.config.head.tmp
     fi
     if [ `cat /tmp/wqng.config.head.tmp|wc -l` -gt 2 ]; then
         echo >> /tmp/wqng.config.head.tmp
