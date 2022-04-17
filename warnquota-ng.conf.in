@@ -23,6 +23,9 @@ config.warnquotafs = { "mail": [ "/var/mail", {'hu':"Postafiók tárhely", 'en':
 #                       "home": [ "/home",     {'hu':"Általános tárhely", 'en':"General storage space"}, "(usertype=web)" ]
 #                     };
 
+# try to drop unnecessary capabilities at start when running as root
+config.dropcaps = True;
+
 # repquota options
 config.repquota_use_csv_format = WQNG_REPQUOTACSVFORMAT;
 

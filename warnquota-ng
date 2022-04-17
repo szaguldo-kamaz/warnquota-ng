@@ -52,6 +52,7 @@ class config:
     hostname = '';
     username = 'wqnguser';
     groupname = 'wqnguser';
+    dropcaps = True;
 
     # defaults
     repquotapathcmd = '/usr/sbin/repquota';
@@ -316,6 +317,17 @@ def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
                 print("Cannot send mail to: %s!"%(toaddr));
 
             smtpconn.quit();
+
+
+def wqng_dropcaps():
+    import prctl
+
+    prctl.securebits.keep_caps = True;
+    os.setgroups([config.groupid]);
+    os.setgid(config.groupid);
+    os.setuid(config.userid);
+    prctl.cap_permitted.limit(prctl.CAP_SYS_ADMIN);
+    prctl.cap_effective.sys_admin = True;
 
 
 def wqng_repquota(mountpoint, csvformat):
@@ -977,6 +989,13 @@ Options:
 
 
 wqng_parse_main_config();
+
+if config.dropcaps and os.getuid() == 0:
+    try:
+        wqng_dropcaps();
+    except:
+        print("Unable to restrict capabilities!");
+        sys.exit(1);
 
 syslog.openlog('warnquota-ng');
 
