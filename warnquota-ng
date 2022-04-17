@@ -11,42 +11,6 @@ import sys, os, pwd, grp, shutil, time, syslog, smtplib, email
 from email.mime.text import MIMEText
 
 
-wqng_version = "0.50";
-simulation = False;
-debuglevel = 0;
-wqng_runmode = 'normal';
-
-if len(sys.argv) > 1:
-    if '-h' in sys.argv or '--help' in sys.argv:
-        print("""usage: warnquota-ng [option]
-Options:
--h : print this help message and exit (also --help)
--V : print version information and exit (also --version)
--n : trial run (no state file updates and no mails sent)
--L : generate fs configs from LDAP directory
--q : run repquota and update quotastate files (as root)
--s : process quotastate files (as non-root)
--d : increase debuglevel (also -v)""");
-        sys.exit(0);
-    if '-V' in sys.argv or '--version' in sys.argv:
-        print("warnquota-ng " + str(wqng_version));
-        sys.exit(0);
-    if '-n' in sys.argv:
-        simulation = True;
-    if '-q' in sys.argv:
-        wqng_runmode = "repquota";
-    if '-s' in sys.argv:
-        if wqng_runmode == "repquota":
-            print("-q and -s cannot be used together");
-            sys.exit(0);
-        wqng_runmode = "quotastateprocess";
-    if '-L' in sys.argv:
-        wqng_runmode = 'ldapconfgen';
-    debuglevel = (sys.argv.count('-d') + sys.argv.count('-v'));
-
-
-warnquotastate = {};
-
 class config:
     #init dictionaries
     mailbody_overinode_user = {};
@@ -978,9 +942,43 @@ def wqng_parse_main_config():
 
 ### the weekend starts here ###
 
-syslog.openlog('warnquota-ng');
+wqng_version = "0.50";
+simulation = False;
+debuglevel = 0;
+wqng_runmode = 'normal';
+
+if len(sys.argv) > 1:
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print("""usage: warnquota-ng [option]
+Options:
+-h : print this help message and exit (also --help)
+-V : print version information and exit (also --version)
+-n : trial run (no state file updates and no mails sent)
+-L : generate fs configs from LDAP directory
+-q : run repquota and update quotastate files (as root)
+-s : process quotastate files (as non-root)
+-d : increase debuglevel (also -v)""");
+        sys.exit(0);
+    if '-V' in sys.argv or '--version' in sys.argv:
+        print("warnquota-ng " + str(wqng_version));
+        sys.exit(0);
+    if '-n' in sys.argv:
+        simulation = True;
+    if '-q' in sys.argv:
+        wqng_runmode = "repquota";
+    if '-s' in sys.argv:
+        if wqng_runmode == "repquota":
+            print("-q and -s cannot be used together");
+            sys.exit(0);
+        wqng_runmode = "quotastateprocess";
+    if '-L' in sys.argv:
+        wqng_runmode = 'ldapconfgen';
+    debuglevel = (sys.argv.count('-d') + sys.argv.count('-v'));
+
 
 wqng_parse_main_config();
+
+syslog.openlog('warnquota-ng');
 
 if wqng_runmode in [ 'normal', 'quotastateprocess' ]:
     for fs in config.warnquotafs.keys():
