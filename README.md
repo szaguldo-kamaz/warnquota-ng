@@ -19,7 +19,8 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
  - can store user configuration in LDAP directory (using warnquota-ng.schema)
  - designed with "security in mind"
    - only the fs quota info gathering is executed with elevated privileges
-     - starts as root, switches to normal user keeping only the required capabilities (CAP_SYS_ADMIN, CAP_DAC_OVERRIDE)
+     - starts as root, switches to normal user keeping only the required capabilities \
+       (CAP_SYS_ADMIN, CAP_DAC_OVERRIDE)
    - all other processing is done with normal user privileges
 
 ## Requirements
