@@ -1004,12 +1004,18 @@ Options:
 
 wqng_parse_main_config();
 
-if config.dropcaps and os.getuid() == 0:
-    try:
-        wqng_dropcaps();
-    except:
-        print("Unable to restrict capabilities!");
-        sys.exit(1);
+if os.getuid() == 0:
+    if wqng_runmode == 'repquota':
+        if config.dropcaps:
+            try:
+                wqng_dropcaps();
+            except:
+                print("Unable to restrict capabilities!");
+                sys.exit(1);
+    else:
+        os.setgroups([config.groupid]);
+        os.setgid(config.groupid);
+        os.setuid(config.userid);
 
 syslog.openlog('warnquota-ng');
 
