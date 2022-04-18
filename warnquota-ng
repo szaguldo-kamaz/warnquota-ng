@@ -320,14 +320,28 @@ def wqng_sendmail(fromaddr, fromname, toaddr, subject, mailtext):
 
 
 def wqng_dropcaps():
-    import prctl
+    try:
+        import pyprctl
+    except ImportError:
+        print("Cannot import pyprctl. Please install pyprctl (or set config.dropcaps to False - less secure).");
+        sys.exit(1);
 
-    prctl.securebits.keep_caps = True;
+    if not pyprctl.cap_ambient_supported():
+        print("Ambient capabilities not supported by this kernel. Please upgrade your kernel (or set config.dropcaps to False - less secure).");
+        sys.exit(1);
+
+    pyprctl.set_keepcaps(True);
     os.setgroups([config.groupid]);
     os.setgid(config.groupid);
     os.setuid(config.userid);
-    prctl.cap_permitted.limit(prctl.CAP_SYS_ADMIN);
-    prctl.cap_effective.sys_admin = True;
+    # CAP_SYS_ADMIN for xfs, CAP_DAC_OVERRIDE for extfs
+    pyprctl.cap_permitted.limit(pyprctl.Cap.SYS_ADMIN, pyprctl.Cap.DAC_OVERRIDE);
+    pyprctl.cap_effective.sys_admin = True;
+    pyprctl.cap_effective.dac_override = True;
+    pyprctl.cap_inheritable.sys_admin = True;
+    pyprctl.cap_inheritable.dac_override = True;
+    pyprctl.cap_ambient.sys_admin = True;
+    pyprctl.cap_ambient.dac_override = True;
 
 
 def wqng_repquota(mountpoint, csvformat):
