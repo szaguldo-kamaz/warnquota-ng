@@ -1,2 +1,3 @@
-Implement repquota runmode, so most of the code can run with normal user privileges
-Consider dropping unnecessary capabilities at startup
+- Parser for the main config file (to avoid exec)
+- Separate mail templates
+- Gather fs quota info without repquota

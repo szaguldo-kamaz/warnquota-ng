@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# warnquota-ng v0.50
+# warnquota-ng v1.00
 #
 # author: David Vincze
 # github.com/szaguldo-kamaz/
@@ -968,7 +968,7 @@ def wqng_parse_main_config():
 
 ### the weekend starts here ###
 
-wqng_version = "0.50";
+wqng_version = "1.00";
 simulation = False;
 debuglevel = 0;
 wqng_runmode = 'normal';
