@@ -252,7 +252,7 @@ echo Setting up cron
 if [ -f /etc/cron.d/warnquota-ng ]; then
     echo crontab already exists\! Leaving it as it is...
 else
-    cat warnquota-ng.crontab | sed s/WQNG_USERNAME/${WQNG_USERNAME}/g > /etc/cron.d/warnquota-ng
+    cat warnquota-ng.crontab | sed s/WQNG_USERNAME/${WQNG_USERNAME}/g | sed s%WQNG_BINARYPATH%${WQNG_BINARYPATH}%g > /etc/cron.d/warnquota-ng
     if [ $? -ne 0 ]; then
         echo ERROR while preparing crontab \(/etc/cron.d/warnquota-ng\)
         exit 2
