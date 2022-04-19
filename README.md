@@ -3,6 +3,7 @@ An easy to use tool for sophisticated quota limit notifications for Linux system
 
 ## Features
  - send "over quota" alerts when a limit is reached
+ - "real-time": checking every few minutes (default is every 5 mins), not just once a day
  - send notifications (pre-alerts) before the actual limit is reached (configurable %)
  - send confirmation when quota is below the limit again
  - sends repeated reminders based on configured intervals \
